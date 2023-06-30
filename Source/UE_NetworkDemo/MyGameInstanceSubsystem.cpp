@@ -97,10 +97,6 @@ void UMyGameInstanceSubsystem::CreateGameSession()
 		LogError(TEXT("执行创建游戏会话失败"));
 		return;
 	}
-
-	_dhOnSessionParticipantJoined = _onlineSession->AddOnSessionParticipantJoinedDelegate_Handle(_dlgOnSessionParticipantJoined);
-	_dhOnSessionParticipantLeft = _onlineSession->AddOnSessionParticipantLeftDelegate_Handle(_dlgOnSessionParticipantLeft);
-	_dhOnDestroySessionComplete = _onlineSession->AddOnDestroySessionCompleteDelegate_Handle(_dlgOnDestroySessionComplete);
 }
 
 void UMyGameInstanceSubsystem::FindAndJoinGameSession()
@@ -155,6 +151,10 @@ void UMyGameInstanceSubsystem::OnCreateSessionComplete(FName SessionName, bool b
 	{
 		_currentSessionName = SessionName;
 		Log(FString::Printf(TEXT("创建游戏会话%s成功"), *SessionName.ToString()));
+
+		_dhOnSessionParticipantJoined = _onlineSession->AddOnSessionParticipantJoinedDelegate_Handle(_dlgOnSessionParticipantJoined);
+		_dhOnSessionParticipantLeft = _onlineSession->AddOnSessionParticipantLeftDelegate_Handle(_dlgOnSessionParticipantLeft);
+		_dhOnDestroySessionComplete = _onlineSession->AddOnDestroySessionCompleteDelegate_Handle(_dlgOnDestroySessionComplete);
 
 		// 跳转至游戏大厅地图
 		UWorld* world = GetWorld();
