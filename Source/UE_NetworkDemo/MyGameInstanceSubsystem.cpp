@@ -93,6 +93,7 @@ void UMyGameInstanceSubsystem::CreateGameSession()
 	const ULocalPlayer* localPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 	if (!_onlineSession->CreateSession(*localPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *sessionSetting))
 	{
+		_onlineSession->ClearOnCreateSessionCompleteDelegate_Handle(_dhOnCreateSessionComplete);
 		LogError(TEXT("执行创建游戏会话失败"));
 		return;
 	}
@@ -120,6 +121,7 @@ void UMyGameInstanceSubsystem::FindAndJoinGameSession()
 	const ULocalPlayer* localPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 	if (!_onlineSession->FindSessions(*localPlayer->GetPreferredUniqueNetId(), _onlineSessionSearch.ToSharedRef()))
 	{
+		_onlineSession->ClearOnFindSessionsCompleteDelegate_Handle(_dhOnFindSessionsComplete);
 		LogError(TEXT("执行查找游戏会话失败"));
 	}
 }
@@ -137,7 +139,12 @@ void UMyGameInstanceSubsystem::DestroyCurrentSession()
 		return;
 	}
 
-	_onlineSession->DestroySession(_currentSessionName, _dlgOnDestroySessionComplete);
+	Log(TEXT("开始销毁当前游戏会话"));	
+	if (!_onlineSession->DestroySession(_currentSessionName))
+	{
+		_onlineSession->ClearOnDestroySessionCompleteDelegate_Handle(_dhOnDestroySessionComplete);
+		LogError(TEXT("执行销毁游戏会话失败"));
+	}
 }
 
 void UMyGameInstanceSubsystem::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
@@ -199,6 +206,7 @@ void UMyGameInstanceSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
 				const ULocalPlayer* localPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 				if (!_onlineSession->JoinSession(*localPlayer->GetPreferredUniqueNetId(), NAME_GameSession, result))
 				{
+					_onlineSession->ClearOnJoinSessionCompleteDelegate_Handle(_dhOnJoinSessionComplete);
 					LogError(TEXT("执行加入游戏会话失败"));
 				}
 				break;
@@ -217,6 +225,7 @@ void UMyGameInstanceSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinS
 	{
 		return;
 	}
+	_currentSessionName = SessionName;
 	_onlineSession->ClearOnJoinSessionCompleteDelegate_Handle(_dhOnJoinSessionComplete);
 
 	if (result == EOnJoinSessionCompleteResult::Success)
@@ -224,14 +233,8 @@ void UMyGameInstanceSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinS
 		Log(TEXT("加入游戏会话成功"));
 
 		_dhOnSessionParticipantJoined = _onlineSession->AddOnSessionParticipantJoinedDelegate_Handle(_dlgOnSessionParticipantJoined);
-		if (!_dhOnSessionParticipantLeft.IsValid())
-		{
-			_dhOnSessionParticipantLeft = _onlineSession->AddOnSessionParticipantLeftDelegate_Handle(_dlgOnSessionParticipantLeft);
-		}
-		if (!_dhOnDestroySessionComplete.IsValid())
-		{
-			_dhOnDestroySessionComplete = _onlineSession->AddOnDestroySessionCompleteDelegate_Handle(_dlgOnDestroySessionComplete);
-		}
+		_dhOnSessionParticipantLeft = _onlineSession->AddOnSessionParticipantLeftDelegate_Handle(_dlgOnSessionParticipantLeft);
+		_dhOnDestroySessionComplete = _onlineSession->AddOnDestroySessionCompleteDelegate_Handle(_dlgOnDestroySessionComplete);
 
 		// 获取该会话的连接信息
 		FString connectInfo;
