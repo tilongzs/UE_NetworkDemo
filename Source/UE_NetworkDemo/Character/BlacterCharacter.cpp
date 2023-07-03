@@ -37,9 +37,9 @@ void ABlacterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	if (APlayerController* pc = CastChecked<APlayerController>(GetController()))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(pc->GetLocalPlayer()))
+		if (UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(pc->GetLocalPlayer()))
 		{
-			Subsystem->AddMappingContext(InputMappingContext, 100);
+			subsystem->AddMappingContext(InputMappingContext, 100);
 		}
 	}
 
@@ -47,32 +47,32 @@ void ABlacterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	{
 		if (IA_MoveForward)
 		{
-			inputComponent->BindAction(IA_MoveForward, ETriggerEvent::Triggered, this, &ABlacterCharacter::ActionMoveForward);
+			inputComponent->BindAction(IA_MoveForward, ETriggerEvent::Triggered, this, &ABlacterCharacter::OnActionMoveForward);
 		}
 
 		if (IA_MoveRight)
 		{
-			inputComponent->BindAction(IA_MoveRight, ETriggerEvent::Triggered, this, &ABlacterCharacter::ActionMoveRight);
+			inputComponent->BindAction(IA_MoveRight, ETriggerEvent::Triggered, this, &ABlacterCharacter::OnActionMoveRight);
 		}
 
 		if (IA_Turn)
 		{
-			inputComponent->BindAction(IA_Turn, ETriggerEvent::Triggered, this, &ABlacterCharacter::ActionTurn);
+			inputComponent->BindAction(IA_Turn, ETriggerEvent::Triggered, this, &ABlacterCharacter::OnActionTurn);
 		}
 
 		if (IA_LookUp)
 		{
-			inputComponent->BindAction(IA_LookUp, ETriggerEvent::Triggered, this, &ABlacterCharacter::ActionLookUp);
+			inputComponent->BindAction(IA_LookUp, ETriggerEvent::Triggered, this, &ABlacterCharacter::OnActionLookUp);
 		}
 
 		if (IA_Jump)
 		{
-			inputComponent->BindAction(IA_Jump, ETriggerEvent::Started, this, &ABlacterCharacter::ActionJump);
+			inputComponent->BindAction(IA_Jump, ETriggerEvent::Started, this, &ABlacterCharacter::OnActionJump);
 		}
 	}
 }
 
-void ABlacterCharacter::ActionMoveForward(const FInputActionValue& inputActionValue)
+void ABlacterCharacter::OnActionMoveForward(const FInputActionValue& inputActionValue)
 {
 	float inputValue = inputActionValue.Get<float>();
 	//Log(FString::Printf(TEXT("ActionMoveForward value:%f"), inputValue));
@@ -84,7 +84,7 @@ void ABlacterCharacter::ActionMoveForward(const FInputActionValue& inputActionVa
 	}
 }
 
-void ABlacterCharacter:: ActionMoveRight(const FInputActionValue& inputActionValue)
+void ABlacterCharacter:: OnActionMoveRight(const FInputActionValue& inputActionValue)
 {
 	float inputValue = inputActionValue.Get<float>();
 	//Log(FString::Printf(TEXT("ActionMoveForward value:%f"), inputValue));
@@ -96,18 +96,18 @@ void ABlacterCharacter:: ActionMoveRight(const FInputActionValue& inputActionVal
 	}
 }
 
-void ABlacterCharacter::ActionJump(const FInputActionValue& inputActionValue)
+void ABlacterCharacter::OnActionJump(const FInputActionValue& inputActionValue)
 {
 	Jump();
 }
 
-void ABlacterCharacter::ActionLookUp(const FInputActionValue& inputActionValue)
+void ABlacterCharacter::OnActionLookUp(const FInputActionValue& inputActionValue)
 {
 	float inputValue = inputActionValue.Get<float>();
 	AddControllerPitchInput(inputValue);
 }
 
-void ABlacterCharacter::ActionTurn(const FInputActionValue& inputActionValue)
+void ABlacterCharacter::OnActionTurn(const FInputActionValue& inputActionValue)
 {
 	float inputValue = inputActionValue.Get<float>();
 	AddControllerYawInput(inputValue);

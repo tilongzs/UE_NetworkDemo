@@ -36,13 +36,13 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void ActionMoveForward(const FInputActionValue& inputActionValue);
+	void OnActionMoveForward(const FInputActionValue& inputActionValue);
 	UFUNCTION()
-	void ActionMoveRight(const FInputActionValue& inputActionValue);
+	void OnActionMoveRight(const FInputActionValue& inputActionValue);
 	UFUNCTION()
-	void ActionJump(const FInputActionValue& inputActionValue);
+	void OnActionJump(const FInputActionValue& inputActionValue);
 	UFUNCTION()
-	void ActionLookUp(const FInputActionValue& inputActionValue);
+	void OnActionLookUp(const FInputActionValue& inputActionValue);
 	UFUNCTION()
-	void ActionTurn(const FInputActionValue& inputActionValue);
+	void OnActionTurn(const FInputActionValue& inputActionValue);
 };
