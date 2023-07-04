@@ -15,6 +15,21 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
             FString playerName = playerState->GetPlayerName();
             int32 playersNum = GameState.Get()->PlayerArray.Num();
             Log(FString::Printf(TEXT("%s 加入游戏!当前玩家数量:%d"), *playerName, playersNum));
+
+            if (playersNum >= 2)
+            {
+                // 跳转至关卡1
+                bUseSeamlessTravel = true;
+                auto world = GetWorld();
+                if (world)
+                {
+                    Log(TEXT("人数足够，开始跳转至关卡1"));
+                    if (!world->ServerTravel("/Game/Maps/Level1", true))
+                    {
+                        LogError(TEXT("跳转至关卡1失败"));
+                    }
+                }
+            }
         }
     }
 }
