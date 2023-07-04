@@ -16,6 +16,8 @@ ABlacterCharacter::ABlacterCharacter()
 	_followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	_followCamera->SetupAttachment(_cameraBoom, USpringArmComponent::SocketName);
 	_followCamera->bUsePawnControlRotation = false;
+	bUseControllerRotationYaw = false; // 身体不跟随控制器（镜头）转向
+	GetCharacterMovement()->bOrientRotationToMovement = true; // 身体随运动方向自动转向
 }
 
 void ABlacterCharacter::BeginPlay()
