@@ -6,7 +6,6 @@ void UBlasterAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 	_blasterCharacter = Cast<ABlacterCharacter>(TryGetPawnOwner());
-
 }
 
 void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
