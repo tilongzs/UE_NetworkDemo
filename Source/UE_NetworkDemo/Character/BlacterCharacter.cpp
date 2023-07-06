@@ -1,6 +1,8 @@
 ﻿#include "BlacterCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PlayerState.h"
+#include "GameFramework/Controller.h"
 #include "Camera/CameraComponent.h"
 #include "../Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputSubsystems.h"
 #include "../Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputComponent.h"
@@ -23,7 +25,16 @@ ABlacterCharacter::ABlacterCharacter()
 void ABlacterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	/*
+		在网络游戏中，PlayerState的初始化和复制需要一些时间。因此，在BeginPlay函数中调用GetPlayerState可能会在PlayerState初始化之前。
+		可以通过重写OnRep_PlayerState函数来得知PlayerState的初始化和复制完成。
+	*/
+	APlayerState* playerState = GetPlayerState();
+	if (playerState)
+	{
+		//Log(FString::Printf(TEXT("玩家名 %s"), *playerState->GetPlayerName()));
+	}
 }
 
 void ABlacterCharacter::Tick(float DeltaTime)
@@ -72,6 +83,20 @@ void ABlacterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 			inputComponent->BindAction(IA_Jump, ETriggerEvent::Started, this, &ABlacterCharacter::OnActionJump);
 		}
 	}
+}
+
+void ABlacterCharacter::OnRep_PlayerState()
+{
+	// 用于客户端；会晚于BeginPlay
+	EventPlayerStateUpdate(GetPlayerState());
+}
+
+void ABlacterCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	// 用于服务端；会早于BeginPlay
+	EventPlayerStateUpdate(NewController->PlayerState);
 }
 
 void ABlacterCharacter::OnActionMoveForward(const FInputActionValue& inputActionValue)
