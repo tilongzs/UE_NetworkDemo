@@ -23,8 +23,8 @@ public:
 	AWeapon();
 	virtual void Tick(float DeltaTime) override;
 protected:
-	virtual void BeginPlay() override;
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void BeginPlay() override;	
+	virtual void OnRep_AttachmentReplication() override;
 
 	UPROPERTY(VisibleAnywhere)
 		class USkeletalMeshComponent*		_mesh;
@@ -33,8 +33,6 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 		EWeaponState						_weaponState;
 
-	UFUNCTION() 
-	void OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 public:	
 	void SetState(EWeaponState weaponState);
 };
