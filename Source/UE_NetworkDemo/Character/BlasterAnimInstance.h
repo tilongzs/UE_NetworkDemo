@@ -14,7 +14,7 @@ public:
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Character")
-		class ABlacterCharacter*	_blasterCharacter = nullptr;
+		class ABlasterCharacter*	_blasterCharacter = nullptr;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 		float	_speed = 0;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")

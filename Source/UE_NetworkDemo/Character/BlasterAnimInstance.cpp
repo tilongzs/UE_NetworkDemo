@@ -1,11 +1,11 @@
 ﻿#include "BlasterAnimInstance.h"
-#include "BlacterCharacter.h"
+#include "BlasterCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 void UBlasterAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
-	_blasterCharacter = Cast<ABlacterCharacter>(TryGetPawnOwner());
+	_blasterCharacter = Cast<ABlasterCharacter>(TryGetPawnOwner());
 }
 
 void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
