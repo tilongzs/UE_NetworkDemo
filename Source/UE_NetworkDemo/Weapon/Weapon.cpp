@@ -27,7 +27,6 @@ void AWeapon::BeginPlay()
 	if (HasAuthority())
 	{
 		SetReplicates(true);
-		SetReplicateMovement(true);
 		_mesh->SetIsReplicated(true);
 		_mesh->SetSimulatePhysics(true);
 		_sphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
