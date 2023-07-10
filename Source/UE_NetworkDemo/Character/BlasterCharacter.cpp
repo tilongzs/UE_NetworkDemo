@@ -220,11 +220,11 @@ void ABlasterCharacter::RPC_Drop_Implementation()
 {
 	if (_equippedWeapon)
 	{
-		// 丢弃当前武器					
-		_equippedWeapon->SetState(EWeaponState::Dropped);
-		_equippedWeapon->SetOwner(nullptr);
+		// 丢弃当前武器		
 		FDetachmentTransformRules rules(EDetachmentRule::KeepWorld, EDetachmentRule::KeepWorld, EDetachmentRule::KeepWorld, true);
-		_equippedWeapon->DetachFromActor(rules);
+		_equippedWeapon->DetachFromActor(rules);		
+		_equippedWeapon->SetOwner(nullptr);
+		_equippedWeapon->SetState(EWeaponState::Dropped);
 		_equippedWeapon = nullptr;
 	}
 }
