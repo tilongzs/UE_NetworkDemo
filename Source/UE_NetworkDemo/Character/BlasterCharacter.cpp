@@ -11,6 +11,11 @@
 #include "../Weapon/Weapon.h"
 #include "Engine/SkeletalMeshSocket.h"
 
+#include <thread>
+#include <chrono>
+using namespace std;
+using namespace chrono;
+
 ABlasterCharacter::ABlasterCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -199,7 +204,7 @@ void ABlasterCharacter::RPC_PickUp_Implementation()
 				_equippedWeapon = weapon;
 				_equippedWeapon->SetState(EWeaponState::Equipped);
 				_equippedWeapon->SetOwner(this);
-				rightHandSocket->AttachActor(_equippedWeapon, GetMesh());
+				rightHandSocket->AttachActor(_equippedWeapon, GetMesh());			
 			}
 			else
 			{

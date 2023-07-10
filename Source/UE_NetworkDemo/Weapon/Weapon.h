@@ -24,7 +24,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 protected:
 	virtual void BeginPlay() override;	
-	virtual void OnRep_AttachmentReplication() override;
 
 	UPROPERTY(VisibleAnywhere)
 		class USkeletalMeshComponent*		_mesh;
@@ -32,7 +31,6 @@ protected:
 		class USphereComponent*				_sphereCollision;
 	UPROPERTY(VisibleAnywhere)
 		EWeaponState						_weaponState;
-
 public:	
 	void SetState(EWeaponState weaponState);
 };
