@@ -6,7 +6,6 @@
 AWeapon::AWeapon()
 {
 	PrimaryActorTick.bCanEverTick = false;
-	bReplicates = true;
 	
 	_mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
 	SetRootComponent(_mesh);
