@@ -10,6 +10,7 @@
 #include "Components/CapsuleComponent.h"
 #include "../Weapon/Weapon.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Net/UnrealNetwork.h"
 
 #include <thread>
 #include <chrono>
@@ -45,6 +46,13 @@ void ABlasterCharacter::BeginPlay()
 	{
 		//Log(FString::Printf(TEXT("玩家名 %s"), *playerState->GetPlayerName()));
 	}
+}
+
+void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ABlasterCharacter, _equippedWeapon);
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -117,6 +125,11 @@ void ABlasterCharacter::PossessedBy(AController* NewController)
 
 	// 用于服务端；会早于BeginPlay
 	EventPlayerStateUpdate(NewController->PlayerState);
+}
+
+bool ABlasterCharacter::IsWeaponEquipped()
+{
+	return _equippedWeapon != nullptr;
 }
 
 void ABlasterCharacter::OnActionMoveForward(const FInputActionValue& inputActionValue)

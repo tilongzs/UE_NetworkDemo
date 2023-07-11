@@ -21,4 +21,6 @@ protected:
 		bool	_isFalling = false;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 		bool	_isAccelerating = false;
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+		bool	_isWeaponEquipped = false;
 };

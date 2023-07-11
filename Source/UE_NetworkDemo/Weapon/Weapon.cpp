@@ -2,6 +2,7 @@
 #include "../Common/Utils.h"
 #include "../Character/BlasterCharacter.h"
 #include "Components/SphereComponent.h"
+#include "Net/UnrealNetwork.h"
 
 AWeapon::AWeapon()
 {
@@ -37,9 +38,29 @@ void AWeapon::BeginPlay()
 	}
 }
 
+void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWeapon, _weaponState);
+}
+
+void AWeapon::OnRep_WeaponState()
+{
+	if (_weaponState == EWeaponState::Equipped)
+	{
+		_sphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	else
+	{
+		_sphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	}
+}
+
 void AWeapon::SetState(EWeaponState weaponState)
 {
-	if (weaponState == EWeaponState::Equipped)
+	_weaponState = weaponState;
+	if (_weaponState == EWeaponState::Equipped)
 	{
 		_sphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		_mesh->SetSimulatePhysics(false);

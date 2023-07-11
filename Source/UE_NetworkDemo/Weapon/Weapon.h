@@ -23,14 +23,18 @@ public:
 	AWeapon();
 	virtual void Tick(float DeltaTime) override;
 protected:
-	virtual void BeginPlay() override;	
+	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 	UPROPERTY(VisibleAnywhere)
 		class USkeletalMeshComponent*		_mesh;
 	UPROPERTY(VisibleAnywhere)
 		class USphereComponent*				_sphereCollision;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_WeaponState)
 		EWeaponState						_weaponState;
+
+	UFUNCTION()
+	void OnRep_WeaponState();
 public:	
 	void SetState(EWeaponState weaponState);
 };

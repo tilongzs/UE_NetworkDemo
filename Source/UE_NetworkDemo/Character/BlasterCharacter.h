@@ -17,8 +17,11 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void OnRep_PlayerState() override;
 	virtual void PossessedBy(class AController* NewController) override;
+
+	bool IsWeaponEquipped();
 protected:
 	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 		class USpringArmComponent* _cameraBoom = nullptr;
@@ -26,7 +29,7 @@ protected:
 		class UCameraComponent* _followCamera = nullptr;
 	UPROPERTY(VisibleAnywhere)
 		TSet<AActor*>			_overlapActors;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Replicated)
 		class AWeapon*			_equippedWeapon = nullptr; // 当前装备的武器
 
 	// 按键绑定
