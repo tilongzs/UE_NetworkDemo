@@ -54,6 +54,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ABlasterCharacter, _equippedWeapon);
+	DOREPLIFETIME(ABlasterCharacter, _isAiming);
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -116,6 +117,12 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		{
 			inputComponent->BindAction(IA_Crouch, ETriggerEvent::Started, this, &ABlasterCharacter::OnActionCrouch);
 		}
+
+		if (IA_Aiming)
+		{
+			inputComponent->BindAction(IA_Aiming, ETriggerEvent::Started, this, &ABlasterCharacter::OnActionAimingStart);
+			inputComponent->BindAction(IA_Aiming, ETriggerEvent::Completed, this, &ABlasterCharacter::OnActionAimingComplete);
+		}
 	}
 }
 
@@ -131,11 +138,6 @@ void ABlasterCharacter::PossessedBy(AController* NewController)
 
 	// 用于服务端；会早于BeginPlay
 	EventPlayerStateUpdate(NewController->PlayerState);
-}
-
-bool ABlasterCharacter::IsWeaponEquipped()
-{
-	return _equippedWeapon != nullptr;
 }
 
 void ABlasterCharacter::OnActionMoveForward(const FInputActionValue& inputActionValue)
@@ -164,7 +166,17 @@ void ABlasterCharacter:: OnActionMoveRight(const FInputActionValue& inputActionV
 
 void ABlasterCharacter::OnActionJump(const FInputActionValue& inputActionValue)
 {
-	Jump();
+	if (!GetCharacterMovement()->IsFalling())
+	{
+		if (bIsCrouched)
+		{
+			UnCrouch();
+		}
+		else
+		{
+			Jump();
+		}
+	}
 }
 
 void ABlasterCharacter::OnActionLookUp(const FInputActionValue& inputActionValue)
@@ -181,12 +193,12 @@ void ABlasterCharacter::OnActionTurn(const FInputActionValue& inputActionValue)
 
 void ABlasterCharacter::OnActionPickUp(const FInputActionValue& inputActionValue)
 {
-	RPC_PickUp();
+	PickUp();
 }
 
 void ABlasterCharacter::OnActionDrop(const FInputActionValue& inputActionValue)
 {
-	RPC_Drop();
+	Drop();
 }
 
 void ABlasterCharacter::OnActionCrouch(const FInputActionValue& inputActionValue)
@@ -202,6 +214,16 @@ void ABlasterCharacter::OnActionCrouch(const FInputActionValue& inputActionValue
 			Crouch();
 		}
 	}
+}
+
+void ABlasterCharacter::OnActionAimingStart(const FInputActionValue& inputActionValue)
+{
+	Aim(true);
+}
+
+void ABlasterCharacter::OnActionAimingComplete(const FInputActionValue& inputActionValue)
+{
+	Aim(false);
 }
 
 void ABlasterCharacter::OnCapsuleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -220,7 +242,7 @@ void ABlasterCharacter::OnCapsuleEndOverlap(UPrimitiveComponent* OverlappedCompo
 	}
 }
 
-void ABlasterCharacter::RPC_PickUp_Implementation()
+void ABlasterCharacter::PickUp()
 {
 	AWeapon* weapon(nullptr);
 	for (auto& actor : _overlapActors)
@@ -229,7 +251,7 @@ void ABlasterCharacter::RPC_PickUp_Implementation()
 		if (weapon)
 		{
 			// 丢弃当前武器	
-			RPC_Drop();
+			Server_Drop();
 
 			// 装备该武器
 			const USkeletalMeshSocket* rightHandSocket = GetMesh()->GetSocketByName(FName("RightHandSocket"));
@@ -238,7 +260,7 @@ void ABlasterCharacter::RPC_PickUp_Implementation()
 				_equippedWeapon = weapon;
 				_equippedWeapon->SetState(EWeaponState::Equipped);
 				_equippedWeapon->SetOwner(this);
-				rightHandSocket->AttachActor(_equippedWeapon, GetMesh());			
+				rightHandSocket->AttachActor(_equippedWeapon, GetMesh());
 			}
 			else
 			{
@@ -248,18 +270,53 @@ void ABlasterCharacter::RPC_PickUp_Implementation()
 			break;
 		}
 	}
+
+	if (!HasAuthority())
+	{
+		Server_PickUp();
+	}
 }
 
-void ABlasterCharacter::RPC_Drop_Implementation()
+void ABlasterCharacter::Server_PickUp_Implementation()
+{
+	PickUp();
+}
+
+void ABlasterCharacter::Drop()
 {
 	if (_equippedWeapon)
 	{
 		// 丢弃当前武器		
 		FDetachmentTransformRules rules(EDetachmentRule::KeepWorld, EDetachmentRule::KeepWorld, EDetachmentRule::KeepWorld, true);
-		_equippedWeapon->DetachFromActor(rules);		
+		_equippedWeapon->DetachFromActor(rules);
 		_equippedWeapon->SetOwner(nullptr);
 		_equippedWeapon->SetState(EWeaponState::Dropped);
 		_equippedWeapon = nullptr;
 	}
+
+	if (!HasAuthority())
+	{
+		Server_Drop();
+	}
+}
+
+void ABlasterCharacter::Server_Drop_Implementation()
+{
+	Drop();
+}
+
+void ABlasterCharacter::Aim(bool isAiming)
+{
+	_isAiming = isAiming;
+
+	if (!HasAuthority())
+	{
+		Server_Aim(isAiming);
+	}
+}
+
+void ABlasterCharacter::Server_Aim_Implementation(bool isAiming)
+{
+	Aim(isAiming);
 }
 

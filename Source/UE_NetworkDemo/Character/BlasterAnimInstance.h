@@ -23,6 +23,8 @@ protected:
 		bool	_isAccelerating = false;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 		bool	_isWeaponEquipped = false;
-		UPROPERTY(BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 		bool	_isCrouched = false;
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+		bool	_isAiming = false;
 };

@@ -18,7 +18,8 @@ public:
 	virtual void OnRep_PlayerState() override;
 	virtual void PossessedBy(class AController* NewController) override;
 
-	bool IsWeaponEquipped();
+	inline bool IsWeaponEquipped() { return _equippedWeapon != nullptr; }
+	inline bool IsAiming() { return _isAiming; }
 protected:
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
@@ -31,6 +32,8 @@ protected:
 		TSet<AActor*>			_overlapActors;
 	UPROPERTY(VisibleAnywhere, Replicated)
 		class AWeapon*			_equippedWeapon = nullptr; // 当前装备的武器
+	UPROPERTY(VisibleAnywhere, Replicated)
+		bool					_isAiming = false;
 
 	// 按键绑定
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="EnhancedInput")
@@ -51,6 +54,8 @@ protected:
 		class UInputAction* IA_Drop;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "EnhancedInput|Action")
 		class UInputAction* IA_Crouch;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "EnhancedInput|Action")
+		class UInputAction* IA_Aiming;
 
 	void OnActionMoveForward(const FInputActionValue& inputActionValue);
 	void OnActionMoveRight(const FInputActionValue& inputActionValue);
@@ -60,16 +65,26 @@ protected:
 	void OnActionPickUp(const FInputActionValue& inputActionValue);
 	void OnActionDrop(const FInputActionValue& inputActionValue);
 	void OnActionCrouch(const FInputActionValue& inputActionValue);
+	void OnActionAimingStart(const FInputActionValue& inputActionValue);
+	void OnActionAimingComplete(const FInputActionValue& inputActionValue);
 	/*********************************************************************************************/
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void EventPlayerStateUpdate(class APlayerState* newPlayerState);
+		void EventPlayerStateUpdate(class APlayerState* newPlayerState);
 	UFUNCTION() 
-	void OnCapsuleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+		void OnCapsuleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
-	void OnCapsuleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+		void OnCapsuleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
+	void PickUp();
 	UFUNCTION(Server, Reliable)
-	void RPC_PickUp();
+		void Server_PickUp();
+	
+	void Drop();
+	UFUNCTION(Server, Reliable)	
+		void Server_Drop();
+	
+	void Aim(bool isAiming);
 	UFUNCTION(Server, Reliable)
-	void RPC_Drop();
+		void Server_Aim(bool isAiming);
 };
