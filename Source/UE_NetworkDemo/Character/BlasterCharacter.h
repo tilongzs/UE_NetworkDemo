@@ -49,6 +49,8 @@ protected:
 		class UInputAction* IA_PickUp;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "EnhancedInput|Action")
 		class UInputAction* IA_Drop;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "EnhancedInput|Action")
+		class UInputAction* IA_Crouch;
 
 	void OnActionMoveForward(const FInputActionValue& inputActionValue);
 	void OnActionMoveRight(const FInputActionValue& inputActionValue);
@@ -57,6 +59,7 @@ protected:
 	void OnActionTurn(const FInputActionValue& inputActionValue);
 	void OnActionPickUp(const FInputActionValue& inputActionValue);
 	void OnActionDrop(const FInputActionValue& inputActionValue);
+	void OnActionCrouch(const FInputActionValue& inputActionValue);
 	/*********************************************************************************************/
 
 	UFUNCTION(BlueprintImplementableEvent)

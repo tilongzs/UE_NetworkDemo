@@ -29,6 +29,7 @@ ABlasterCharacter::ABlasterCharacter()
 	_followCamera->bUsePawnControlRotation = false;
 	bUseControllerRotationYaw = false; // 身体不跟随控制器（镜头）转向
 	GetCharacterMovement()->bOrientRotationToMovement = true; // 身体随运动方向自动转向
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true; // 允许蹲下
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABlasterCharacter::OnCapsuleBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABlasterCharacter::OnCapsuleEndOverlap);
 }
@@ -110,6 +111,11 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		{
 			inputComponent->BindAction(IA_Drop, ETriggerEvent::Started, this, &ABlasterCharacter::OnActionDrop);
 		}
+
+		if (IA_Crouch)
+		{
+			inputComponent->BindAction(IA_Crouch, ETriggerEvent::Started, this, &ABlasterCharacter::OnActionCrouch);
+		}
 	}
 }
 
@@ -181,6 +187,21 @@ void ABlasterCharacter::OnActionPickUp(const FInputActionValue& inputActionValue
 void ABlasterCharacter::OnActionDrop(const FInputActionValue& inputActionValue)
 {
 	RPC_Drop();
+}
+
+void ABlasterCharacter::OnActionCrouch(const FInputActionValue& inputActionValue)
+{
+	if (!GetCharacterMovement()->IsFalling())
+	{
+		if (bIsCrouched)
+		{
+			UnCrouch();
+		}
+		else
+		{
+			Crouch();
+		}
+	}
 }
 
 void ABlasterCharacter::OnCapsuleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
