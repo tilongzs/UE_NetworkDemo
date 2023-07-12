@@ -251,7 +251,7 @@ void ABlasterCharacter::PickUp()
 		if (weapon)
 		{
 			// 丢弃当前武器	
-			Server_Drop();
+			Drop();
 
 			// 装备该武器
 			const USkeletalMeshSocket* rightHandSocket = GetMesh()->GetSocketByName(FName("RightHandSocket"));
@@ -261,6 +261,9 @@ void ABlasterCharacter::PickUp()
 				_equippedWeapon->SetState(EWeaponState::Equipped);
 				_equippedWeapon->SetOwner(this);
 				rightHandSocket->AttachActor(_equippedWeapon, GetMesh());
+
+				bUseControllerRotationYaw = true; // 身体跟随控制器（镜头）转向
+				GetCharacterMovement()->bOrientRotationToMovement = false; // 身体不跟随运动方向自动转向
 			}
 			else
 			{
@@ -293,6 +296,9 @@ void ABlasterCharacter::Drop()
 		_equippedWeapon->SetState(EWeaponState::Dropped);
 		_equippedWeapon = nullptr;
 	}
+
+	bUseControllerRotationYaw = false; // 身体不跟随控制器（镜头）转向
+	GetCharacterMovement()->bOrientRotationToMovement = true; // 身体跟随运动方向自动转向
 
 	if (!HasAuthority())
 	{

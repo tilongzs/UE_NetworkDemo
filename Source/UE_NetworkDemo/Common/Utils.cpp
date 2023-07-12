@@ -4,11 +4,18 @@
 using namespace std;
 using namespace chrono;
 
+/************************************************************************/
+/* 
+* DefaultEngine.ini增加以下配置
+[LogFiles]
+LogTimes=Local															*/
+/************************************************************************/
 void Log(const FString& log, float time, FColor color)
 {
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, time, color, GetCurrentTimeStr(true) +  TEXT(" ") + log);
+		UE_LOG(LogTemp, Log, TEXT("%s"), *log);
 	}	
 }
 
@@ -17,6 +24,7 @@ void LogWarning(const FString& log, float time /*= 10.f*/)
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, time, FColor::Yellow, GetCurrentTimeStr(true) + TEXT(" ") + log);
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *log);
 	}
 }
 
@@ -25,6 +33,7 @@ void LogError(const FString& log, float time /*= 15.f*/)
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, time, FColor::Red, GetCurrentTimeStr(true) + TEXT(" ") + log);
+		UE_LOG(LogTemp, Error, TEXT("%s"), *log);
 	}
 }
 
