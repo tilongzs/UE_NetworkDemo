@@ -193,11 +193,13 @@ void ABlasterCharacter::OnActionTurn(const FInputActionValue& inputActionValue)
 
 void ABlasterCharacter::OnActionPickUp(const FInputActionValue& inputActionValue)
 {
+	//Server_PickUp();
 	PickUp();
 }
 
 void ABlasterCharacter::OnActionDrop(const FInputActionValue& inputActionValue)
 {
+	//Server_Drop();
 	Drop();
 }
 
@@ -228,18 +230,12 @@ void ABlasterCharacter::OnActionAimingComplete(const FInputActionValue& inputAct
 
 void ABlasterCharacter::OnCapsuleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (HasAuthority())
-	{
-		_overlapActors.Add(OtherActor);
-	}
+	_overlapActors.Add(OtherActor);
 }
 
 void ABlasterCharacter::OnCapsuleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (HasAuthority())
-	{
-		_overlapActors.Remove(OtherActor);
-	}
+	_overlapActors.Remove(OtherActor);
 }
 
 void ABlasterCharacter::PickUp()

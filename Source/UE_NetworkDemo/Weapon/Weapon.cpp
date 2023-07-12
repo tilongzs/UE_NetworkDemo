@@ -17,6 +17,7 @@ AWeapon::AWeapon()
 	_sphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereColision"));
 	_sphereCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	_sphereCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	_sphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	_sphereCollision->SetupAttachment(RootComponent);
 }
 
@@ -28,13 +29,11 @@ void AWeapon::BeginPlay()
 	{
 		SetReplicates(true);
 		_mesh->SetIsReplicated(true);
-		_mesh->SetSimulatePhysics(true);
-		_sphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		_mesh->SetSimulatePhysics(true);		
 	}
 	else
 	{
 		_mesh->SetSimulatePhysics(false);
-		_sphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
 

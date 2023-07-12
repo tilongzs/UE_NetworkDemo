@@ -35,6 +35,6 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	FRotator deltaMovementToAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(movementRotation, aimRotation);
 	_deltaMovementToAimRotation = FMath::RInterpTo(_deltaMovementToAimRotation, deltaMovementToAimRotation, DeltaSeconds, 15.f);
 	_yawOffset = _deltaMovementToAimRotation.Yaw;
-	Log(FString::Printf(TEXT("_yawOffset:%.1lf"), _yawOffset));
+	//Log(FString::Printf(TEXT("_yawOffset:%.1lf"), _yawOffset));
 	//Log(FString::Printf(TEXT("aimYaw:%.1lf velocityYaw:%.1lf"), aimRotation.Yaw, movementRotation.Yaw));
 }
