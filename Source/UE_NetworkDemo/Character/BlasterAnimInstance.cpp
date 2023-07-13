@@ -40,6 +40,7 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	USkeletalMeshComponent* weaponMesh = _blasterCharacter->GetWeaponMesh();
 	if (weaponMesh)
 	{
+		// 计算左手应该放置的位置从世界坐标系转为角色骨骼坐标系
 		_leftHandTransfrom = weaponMesh->GetSocketTransform(FName("LeftHandSocket"), RTS_World);
 		FVector OutPosition;
 		FRotator OutRotation;
