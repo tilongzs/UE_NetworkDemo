@@ -20,6 +20,7 @@ public:
 
 	inline bool IsWeaponEquipped() { return _equippedWeapon != nullptr; }
 	inline bool IsAiming() { return _isAiming; }
+	class USkeletalMeshComponent* GetWeaponMesh();
 protected:
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;

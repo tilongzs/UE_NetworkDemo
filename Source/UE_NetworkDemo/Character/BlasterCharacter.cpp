@@ -140,6 +140,16 @@ void ABlasterCharacter::PossessedBy(AController* NewController)
 	EventPlayerStateUpdate(NewController->PlayerState);
 }
 
+class USkeletalMeshComponent* ABlasterCharacter::GetWeaponMesh()
+{
+	if (_equippedWeapon)
+	{
+		return _equippedWeapon->GetMesh();
+	}
+
+	return nullptr;
+}
+
 void ABlasterCharacter::OnActionMoveForward(const FInputActionValue& inputActionValue)
 {
 	float inputValue = inputActionValue.Get<float>();

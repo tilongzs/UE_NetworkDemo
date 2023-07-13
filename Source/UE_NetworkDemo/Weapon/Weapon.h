@@ -37,4 +37,5 @@ protected:
 	void OnRep_WeaponState();
 public:	
 	void SetState(EWeaponState weaponState);
+	inline class USkeletalMeshComponent* GetMesh() { return _mesh; }
 };

@@ -29,6 +29,8 @@ protected:
 		bool	_isAiming = false;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 		float	_yawOffset = 0; // 移动方向与控制器朝向的夹角
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+		FTransform	_leftHandTransfrom;	// 用于左手FBRIK
 private:
 	FRotator	_deltaMovementToAimRotation;
 };
