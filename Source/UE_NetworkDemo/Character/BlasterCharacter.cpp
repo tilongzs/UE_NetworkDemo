@@ -32,6 +32,8 @@ ABlasterCharacter::ABlasterCharacter()
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true; // 允许蹲下
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABlasterCharacter::OnCapsuleBeginOverlap);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABlasterCharacter::OnCapsuleEndOverlap);
+	NetUpdateFrequency = 66.f;
+	MinNetUpdateFrequency = 33.f;
 }
 
 void ABlasterCharacter::BeginPlay()
