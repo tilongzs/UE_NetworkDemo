@@ -16,7 +16,7 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
             int32 playersNum = GameState.Get()->PlayerArray.Num();
             Log(FString::Printf(TEXT("%s 加入游戏!当前玩家数量:%d"), *playerName, playersNum));
 
-            if (playersNum >= 3)
+            if (playersNum >= 4)
             {
                 // 跳转至关卡1
                 bUseSeamlessTravel = true;

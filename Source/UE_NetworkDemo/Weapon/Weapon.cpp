@@ -67,7 +67,19 @@ void AWeapon::SetState(EWeaponState weaponState)
 	else
 	{
 		_sphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		_mesh->SetSimulatePhysics(true);
+
+		if (HasAuthority())
+		{
+			_mesh->SetSimulatePhysics(true);
+		}
+	}
+}
+
+void AWeapon::Fire()
+{
+	if (_fireAnimation)
+	{
+		_mesh->PlayAnimation(_fireAnimation, false);
 	}
 }
 

@@ -27,15 +27,18 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 	UPROPERTY(VisibleAnywhere)
-		class USkeletalMeshComponent*		_mesh;
+		class USkeletalMeshComponent*		_mesh = nullptr;
 	UPROPERTY(VisibleAnywhere)
-		class USphereComponent*				_sphereCollision;
+		class USphereComponent*				_sphereCollision = nullptr;
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_WeaponState)
-		EWeaponState						_weaponState;
+		EWeaponState						_weaponState = EWeaponState::Dropped;
+	UPROPERTY(EditAnywhere)
+		class UAnimationAsset*				_fireAnimation = nullptr;
 
 	UFUNCTION()
 	void OnRep_WeaponState();
 public:	
 	void SetState(EWeaponState weaponState);
 	inline class USkeletalMeshComponent* GetMesh() { return _mesh; }
+	void Fire();
 };

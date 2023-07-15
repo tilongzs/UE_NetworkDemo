@@ -125,6 +125,12 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 			inputComponent->BindAction(IA_Aiming, ETriggerEvent::Started, this, &ABlasterCharacter::OnActionAimingStart);
 			inputComponent->BindAction(IA_Aiming, ETriggerEvent::Completed, this, &ABlasterCharacter::OnActionAimingComplete);
 		}
+
+		if (IA_Fire)
+		{
+			inputComponent->BindAction(IA_Fire, ETriggerEvent::Started, this, &ABlasterCharacter::OnActionFireStart);
+			inputComponent->BindAction(IA_Fire, ETriggerEvent::Completed, this, &ABlasterCharacter::OnActionFireComplete);
+		}
 	}
 }
 
@@ -240,6 +246,16 @@ void ABlasterCharacter::OnActionAimingComplete(const FInputActionValue& inputAct
 	Aim(false);
 }
 
+void ABlasterCharacter::OnActionFireStart(const FInputActionValue& inputActionValue)
+{
+	Fire(false);
+}
+
+void ABlasterCharacter::OnActionFireComplete(const FInputActionValue& inputActionValue)
+{
+	Fire(true);
+}
+
 void ABlasterCharacter::OnCapsuleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	_overlapActors.Add(OtherActor);
@@ -332,5 +348,27 @@ void ABlasterCharacter::Aim(bool isAiming)
 void ABlasterCharacter::Server_Aim_Implementation(bool isAiming)
 {
 	Aim(isAiming);
+}
+
+void ABlasterCharacter::Fire(bool isStop)
+{
+	Server_Fire(isStop);
+		
+}
+
+void ABlasterCharacter::Server_Fire_Implementation(bool isStop)
+{
+	Multicast_Fire(isStop);
+}
+
+void ABlasterCharacter::Multicast_Fire_Implementation(bool isStop)
+{
+	if (_equippedWeapon)
+	{
+		if (!isStop)
+		{
+			_equippedWeapon->Fire();
+		}
+	}
 }
 

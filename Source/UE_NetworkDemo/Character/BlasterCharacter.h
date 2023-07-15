@@ -57,6 +57,8 @@ protected:
 		class UInputAction* IA_Crouch;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "EnhancedInput|Action")
 		class UInputAction* IA_Aiming;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "EnhancedInput|Action")
+		class UInputAction* IA_Fire;
 
 	void OnActionMoveForward(const FInputActionValue& inputActionValue);
 	void OnActionMoveRight(const FInputActionValue& inputActionValue);
@@ -68,6 +70,8 @@ protected:
 	void OnActionCrouch(const FInputActionValue& inputActionValue);
 	void OnActionAimingStart(const FInputActionValue& inputActionValue);
 	void OnActionAimingComplete(const FInputActionValue& inputActionValue);
+	void OnActionFireStart(const FInputActionValue& inputActionValue);
+	void OnActionFireComplete(const FInputActionValue& inputActionValue);
 	/*********************************************************************************************/
 
 	UFUNCTION(BlueprintImplementableEvent)
@@ -88,4 +92,10 @@ protected:
 	void Aim(bool isAiming);
 	UFUNCTION(Server, Reliable)
 		void Server_Aim(bool isAiming);
+
+	void Fire(bool isStop);
+	UFUNCTION(Server, Reliable)
+		void Server_Fire(bool isStop);
+	UFUNCTION(NetMulticast, Reliable)
+		void Multicast_Fire(bool isStop);
 };
