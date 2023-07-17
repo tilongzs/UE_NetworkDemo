@@ -27,8 +27,8 @@ void AWeapon::BeginPlay()
 
 	if (HasAuthority())
 	{
-		SetReplicates(true);
-		_mesh->SetIsReplicated(true);
+ 		SetReplicates(true);
+ 		_mesh->SetIsReplicated(true);
 		_mesh->SetSimulatePhysics(true);		
 	}
 	else
@@ -75,7 +75,7 @@ void AWeapon::SetState(EWeaponState weaponState)
 	}
 }
 
-void AWeapon::Fire()
+void AWeapon::Fire(const FVector& targetLocation)
 {
 	if (_fireAnimation)
 	{

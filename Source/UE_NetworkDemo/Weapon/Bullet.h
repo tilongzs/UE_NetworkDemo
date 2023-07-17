@@ -19,6 +19,11 @@ protected:
 		class UStaticMeshComponent*		_mesh;
 	UPROPERTY(VisibleAnywhere)
 		class USphereComponent*			_sphereCollision;
+	UPROPERTY(VisibleAnywhere)
+		class UProjectileMovementComponent*	_projectileMovementComponent = nullptr;
+	UPROPERTY(EditAnywhere)
+		class UParticleSystem*			_tracerPartical;
+	class UParticleSystemComponent*		_particleSystemComponent = nullptr;
 public:	
 	virtual void Tick(float DeltaTime) override;
 

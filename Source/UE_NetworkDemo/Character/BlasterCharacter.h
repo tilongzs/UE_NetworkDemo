@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "../Plugins/EnhancedInput/Source/EnhancedInput/Public/inputActionValue.h"
+#include "Engine/NetSerialization.h"
 #include "BlasterCharacter.generated.h"
 
 UCLASS()
@@ -95,7 +96,9 @@ protected:
 
 	void Fire(bool isStop);
 	UFUNCTION(Server, Reliable)
-		void Server_Fire(bool isStop);
+		void Server_Fire(const FVector_NetQuantize& fireImpactPoint, bool isStop);
 	UFUNCTION(NetMulticast, Reliable)
-		void Multicast_Fire(bool isStop);
+		void Multicast_Fire(const FVector_NetQuantize& fireImpactPoint, bool isStop);
+
+	void TraceUnderCrosshairs(FVector& fireImpactPoint);
 };

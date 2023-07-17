@@ -40,5 +40,5 @@ protected:
 public:	
 	void SetState(EWeaponState weaponState);
 	inline class USkeletalMeshComponent* GetMesh() { return _mesh; }
-	void Fire();
+	virtual void Fire(const FVector& targetLocation);
 };

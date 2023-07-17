@@ -14,8 +14,11 @@
 
 #include <thread>
 #include <chrono>
+#include "Kismet/GameplayStatics.h"
 using namespace std;
 using namespace chrono;
+
+#define FIRE_TRACE_LENGTH 8000
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -352,22 +355,69 @@ void ABlasterCharacter::Server_Aim_Implementation(bool isAiming)
 
 void ABlasterCharacter::Fire(bool isStop)
 {
-	Server_Fire(isStop);
-		
+	FVector	fireImpactPoint;
+	TraceUnderCrosshairs(fireImpactPoint);
+
+	Server_Fire(fireImpactPoint, isStop);
 }
 
-void ABlasterCharacter::Server_Fire_Implementation(bool isStop)
+void ABlasterCharacter::Server_Fire_Implementation(const FVector_NetQuantize& fireImpactPoint, bool isStop)
 {
-	Multicast_Fire(isStop);
+	Multicast_Fire(fireImpactPoint, isStop);
 }
 
-void ABlasterCharacter::Multicast_Fire_Implementation(bool isStop)
+void ABlasterCharacter::Multicast_Fire_Implementation(const FVector_NetQuantize& fireImpactPoint, bool isStop)
 {
 	if (_equippedWeapon)
 	{
 		if (!isStop)
 		{
-			_equippedWeapon->Fire();
+			_equippedWeapon->Fire(fireImpactPoint);
+		}
+	}
+}
+
+void ABlasterCharacter::TraceUnderCrosshairs(FVector& fireImpactPoint)
+{
+	if (_equippedWeapon && IsLocallyControlled())
+	{
+		if (GEngine && GEngine->GameViewportForWorld(GetWorld()))
+		{
+			FVector2D viewPortSize;
+			GEngine->GameViewportForWorld(GetWorld())->GetViewportSize(viewPortSize);
+
+			FVector2D crosshairScreenLocation(viewPortSize.X / 2, viewPortSize.Y / 2);
+			FVector crosshairWorldLocation;
+			FVector crosshairWorldDirection;
+			bool ret = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(this, 0), crosshairScreenLocation, crosshairWorldLocation, crosshairWorldDirection);
+			if (ret)
+			{
+				FVector traceEnd = crosshairWorldLocation + crosshairWorldDirection * FIRE_TRACE_LENGTH;
+				FHitResult hitResult;
+				ret = GetWorld()->LineTraceSingleByChannel(hitResult, crosshairWorldLocation, traceEnd, ECollisionChannel::ECC_Visibility);
+				if (ret)
+				{
+					//DrawDebugSphere(GetWorld(), crosshairWorldLocation, 0.3, 8, FColor::Green);
+					if (hitResult.bBlockingHit)
+					{
+						fireImpactPoint = hitResult.ImpactPoint;
+					//	DrawDebugLine(GetWorld(), crosshairWorldLocation, hitResult.Location, FColor::Red);
+					}
+					else
+					{
+						fireImpactPoint = traceEnd;
+					}
+				}
+				else
+				{
+					fireImpactPoint = traceEnd;
+					//LogWarning(TEXT("LineTraceSingleByChannel失败"));
+				}
+			}
+			else
+			{
+				LogWarning(TEXT("DeprojectScreenToWorld失败"));
+			}
 		}
 	}
 }
