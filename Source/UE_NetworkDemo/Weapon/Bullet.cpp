@@ -1,4 +1,5 @@
 ﻿#include "Bullet.h"
+#include "../Common/Utils.h"
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -26,6 +27,16 @@ ABullet::ABullet()
 	_projectileMovementComponent->bRotationFollowsVelocity = true;
 }
 
+void ABullet::Destroyed()
+{
+	Super::Destroyed();
+
+	if (_destroyPartical)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), _destroyPartical, GetActorTransform());
+	}
+}
+
 void ABullet::BeginPlay()
 {
 	Super::BeginPlay();
@@ -33,6 +44,7 @@ void ABullet::BeginPlay()
 	if (HasAuthority())
 	{
 		SetReplicates(true);
+		_sphereCollision->OnComponentHit.AddDynamic(this, &ABullet::OnComponentHit);
 		_projectileMovementComponent->SetIsReplicated(true);
 	}
 
@@ -42,6 +54,11 @@ void ABullet::BeginPlay()
 		_particleSystemComponent->SetupAttachment(RootComponent);
 	}
 
+}
+
+void ABullet::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	Destroy();
 }
 
 void ABullet::Tick(float DeltaTime)

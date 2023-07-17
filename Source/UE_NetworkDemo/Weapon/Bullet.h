@@ -12,6 +12,7 @@ class UE_NETWORKDEMO_API ABullet : public AActor
 public:	
 	ABullet();
 
+	virtual void Destroyed() override;
 protected:
 	virtual void BeginPlay() override;
 
@@ -23,7 +24,12 @@ protected:
 		class UProjectileMovementComponent*	_projectileMovementComponent = nullptr;
 	UPROPERTY(EditAnywhere)
 		class UParticleSystem*			_tracerPartical;
+	UPROPERTY(EditAnywhere)
+		class UParticleSystem*			_destroyPartical;
 	class UParticleSystemComponent*		_particleSystemComponent = nullptr;
+
+	UFUNCTION() 
+		void OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 public:	
 	virtual void Tick(float DeltaTime) override;
 
