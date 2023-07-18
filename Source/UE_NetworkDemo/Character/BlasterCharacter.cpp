@@ -43,6 +43,9 @@ void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	_defaultFOV = _followCamera->FieldOfView;
+	_currentFOV = _defaultFOV;
+
 	/*
 		在网络游戏中，PlayerState的初始化和复制需要一些时间。因此，在BeginPlay函数中调用GetPlayerState可能会在PlayerState初始化之前。
 		可以通过重写OnRep_PlayerState函数来得知PlayerState的初始化和复制完成。
@@ -66,6 +69,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	UpdateZoom(DeltaTime);
 }
 
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -214,13 +218,11 @@ void ABlasterCharacter::OnActionTurn(const FInputActionValue& inputActionValue)
 
 void ABlasterCharacter::OnActionPickUp(const FInputActionValue& inputActionValue)
 {
-	//Server_PickUp();
 	PickUp();
 }
 
 void ABlasterCharacter::OnActionDrop(const FInputActionValue& inputActionValue)
 {
-	//Server_Drop();
 	Drop();
 }
 
@@ -241,7 +243,10 @@ void ABlasterCharacter::OnActionCrouch(const FInputActionValue& inputActionValue
 
 void ABlasterCharacter::OnActionAimingStart(const FInputActionValue& inputActionValue)
 {
-	Aim(true);
+	if (_equippedWeapon)
+	{
+		Aim(true);
+	}
 }
 
 void ABlasterCharacter::OnActionAimingComplete(const FInputActionValue& inputActionValue)
@@ -251,12 +256,18 @@ void ABlasterCharacter::OnActionAimingComplete(const FInputActionValue& inputAct
 
 void ABlasterCharacter::OnActionFireStart(const FInputActionValue& inputActionValue)
 {
-	Fire(false);
+	if (!_fireTimer.IsValid())
+	{
+		GetWorldTimerManager().SetTimer(_fireTimer, this, &ABlasterCharacter::OnTimerFire, _equippedWeapon->GetFireDelay(), true, 0);
+	}
 }
 
 void ABlasterCharacter::OnActionFireComplete(const FInputActionValue& inputActionValue)
 {
-	Fire(true);
+	GetWorldTimerManager().ClearTimer(_fireTimer);
+
+	FVector_NetQuantize fireImpactPoint;
+	Server_Fire(true, fireImpactPoint);
 }
 
 void ABlasterCharacter::OnCapsuleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -291,6 +302,8 @@ void ABlasterCharacter::PickUp()
 
 				bUseControllerRotationYaw = true; // 身体跟随控制器（镜头）转向
 				GetCharacterMovement()->bOrientRotationToMovement = false; // 身体不跟随运动方向自动转向
+
+				_dlgPickup.Broadcast(true);
 			}
 			else
 			{
@@ -314,18 +327,22 @@ void ABlasterCharacter::Server_PickUp_Implementation()
 
 void ABlasterCharacter::Drop()
 {
-	if (_equippedWeapon)
+	if (!_equippedWeapon)
 	{
-		// 丢弃当前武器		
-		FDetachmentTransformRules rules(EDetachmentRule::KeepWorld, EDetachmentRule::KeepWorld, EDetachmentRule::KeepWorld, true);
-		_equippedWeapon->DetachFromActor(rules);
-		_equippedWeapon->SetOwner(nullptr);
-		_equippedWeapon->SetState(EWeaponState::Dropped);
-		_equippedWeapon = nullptr;
+		return;		
 	}
+
+	// 丢弃当前武器		
+	FDetachmentTransformRules rules(EDetachmentRule::KeepWorld, EDetachmentRule::KeepWorld, EDetachmentRule::KeepWorld, true);
+	_equippedWeapon->DetachFromActor(rules);
+	_equippedWeapon->SetOwner(nullptr);
+	_equippedWeapon->SetState(EWeaponState::Dropped);
+	_equippedWeapon = nullptr;
 
 	bUseControllerRotationYaw = false; // 身体不跟随控制器（镜头）转向
 	GetCharacterMovement()->bOrientRotationToMovement = true; // 身体跟随运动方向自动转向
+
+	_dlgPickup.Broadcast(false);
 
 	if (!HasAuthority())
 	{
@@ -353,27 +370,61 @@ void ABlasterCharacter::Server_Aim_Implementation(bool isAiming)
 	Aim(isAiming);
 }
 
-void ABlasterCharacter::Fire(bool isStop)
+void ABlasterCharacter::UpdateZoom(float DeltaTime)
 {
-	FVector	fireImpactPoint;
-	TraceUnderCrosshairs(fireImpactPoint);
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
 
-	Server_Fire(fireImpactPoint, isStop);
+	if (_isAiming)
+	{
+		_currentFOV = FMath::FInterpTo(_currentFOV, _equippedWeapon->GetZoomedFOV(), DeltaTime, _equippedWeapon->GetZoomInterpSpeed());
+	}
+	else
+	{
+		_currentFOV = FMath::FInterpTo(_currentFOV, _defaultFOV, DeltaTime, _zoomInterpSpeed);
+	}
+	_followCamera->SetFieldOfView(_currentFOV);
 }
 
-void ABlasterCharacter::Server_Fire_Implementation(const FVector_NetQuantize& fireImpactPoint, bool isStop)
+void ABlasterCharacter::Server_Fire_Implementation(bool isStop, const FVector_NetQuantize& fireImpactPoint)
 {
-	Multicast_Fire(fireImpactPoint, isStop);
+	if (isStop)
+	{
+		GetWorldTimerManager().ClearTimer(_fireTimer);
+	}
+	else
+	{
+		_fireImpactPoint = fireImpactPoint;
+		if (!_fireTimer.IsValid())
+		{
+			GetWorldTimerManager().SetTimer(_fireTimer, this, &ABlasterCharacter::OnTimerFire, _equippedWeapon->GetFireDelay(), true, 0);
+		}
+	}
 }
 
-void ABlasterCharacter::Multicast_Fire_Implementation(const FVector_NetQuantize& fireImpactPoint, bool isStop)
+void ABlasterCharacter::OnTimerFire()
+{
+	if (IsLocallyControlled())
+	{
+		FVector	fireImpactPoint;
+		TraceUnderCrosshairs(fireImpactPoint);
+
+		Server_Fire(false, fireImpactPoint);
+	}
+
+	if (HasAuthority())
+	{
+		Multicast_Fire(_fireImpactPoint);
+	}
+}
+
+void ABlasterCharacter::Multicast_Fire_Implementation(const FVector_NetQuantize& fireImpactPoint)
 {
 	if (_equippedWeapon)
 	{
-		if (!isStop)
-		{
-			_equippedWeapon->Fire(fireImpactPoint);
-		}
+		_equippedWeapon->Fire(fireImpactPoint);
 	}
 }
 
@@ -392,6 +443,9 @@ void ABlasterCharacter::TraceUnderCrosshairs(FVector& fireImpactPoint)
 			bool ret = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(this, 0), crosshairScreenLocation, crosshairWorldLocation, crosshairWorldDirection);
 			if (ret)
 			{
+				float distanceToCharacter = (crosshairWorldLocation - GetActorLocation()).Size();
+				crosshairWorldLocation += (crosshairWorldDirection * distanceToCharacter + 50); // 射线的起始位置设置在角色前，而不是摄像机位置
+				//DrawDebugSphere(GetWorld(), crosshairWorldLocation, 15.f, 12, FColor::Red, true);
 				FVector traceEnd = crosshairWorldLocation + crosshairWorldDirection * FIRE_TRACE_LENGTH;
 				FHitResult hitResult;
 				ret = GetWorld()->LineTraceSingleByChannel(hitResult, crosshairWorldLocation, traceEnd, ECollisionChannel::ECC_Visibility);

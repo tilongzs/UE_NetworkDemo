@@ -34,6 +34,12 @@ protected:
 		EWeaponState						_weaponState = EWeaponState::Dropped;
 	UPROPERTY(EditAnywhere)
 		class UAnimationAsset*				_fireAnimation = nullptr;
+	UPROPERTY(EditAnywhere)
+		float								_zoomedFOV = 30.f;
+	UPROPERTY(EditAnywhere)
+		float								_zoomInterpSpeed = 20.f;
+	UPROPERTY(EditAnywhere)
+		float								_fireDelay = 0.15f; // 射击间隔
 
 	UFUNCTION()
 	void OnRep_WeaponState();
@@ -41,4 +47,7 @@ public:
 	void SetState(EWeaponState weaponState);
 	inline class USkeletalMeshComponent* GetMesh() { return _mesh; }
 	virtual void Fire(const FVector& targetLocation);
+	FORCEINLINE float GetZoomedFOV() { return _zoomedFOV; }
+	FORCEINLINE float GetZoomInterpSpeed() { return _zoomInterpSpeed; }
+	FORCEINLINE float GetFireDelay() { return _fireDelay; }
 };

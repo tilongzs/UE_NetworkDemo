@@ -6,6 +6,8 @@
 #include "Engine/NetSerialization.h"
 #include "BlasterCharacter.generated.h"
 
+
+
 UCLASS()
 class UE_NETWORKDEMO_API ABlasterCharacter : public ACharacter
 {
@@ -36,6 +38,11 @@ protected:
 		class AWeapon*			_equippedWeapon = nullptr; // 当前装备的武器
 	UPROPERTY(VisibleAnywhere, Replicated)
 		bool					_isAiming = false;
+	float						_defaultFOV = 90.f;
+	float						_currentFOV = 90.f;
+	float						_zoomInterpSpeed = 40.f;
+	FTimerHandle				_fireTimer;
+	FVector_NetQuantize			_fireImpactPoint;
 
 	// 按键绑定
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="EnhancedInput")
@@ -82,6 +89,9 @@ protected:
 	UFUNCTION()
 		void OnCapsuleEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	
+	/// <summary>
+	/// 捡起、丢弃武器
+	/// </summary>
 	void PickUp();
 	UFUNCTION(Server, Reliable)
 		void Server_PickUp();
@@ -89,16 +99,22 @@ protected:
 	void Drop();
 	UFUNCTION(Server, Reliable)	
 		void Server_Drop();
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDelegatePickUp, bool, isPickUp);
+	UPROPERTY(BlueprintAssignable)
+	FDelegatePickUp	_dlgPickup;
+	/***************************************************************************************/
 	
 	void Aim(bool isAiming);
 	UFUNCTION(Server, Reliable)
 		void Server_Aim(bool isAiming);
+	void UpdateZoom(float DeltaTime);
 
-	void Fire(bool isStop);
+	void OnTimerFire();
 	UFUNCTION(Server, Reliable)
-		void Server_Fire(const FVector_NetQuantize& fireImpactPoint, bool isStop);
+		void Server_Fire(bool isStop, const FVector_NetQuantize& fireImpactPoint);
 	UFUNCTION(NetMulticast, Reliable)
-		void Multicast_Fire(const FVector_NetQuantize& fireImpactPoint, bool isStop);
+		void Multicast_Fire(const FVector_NetQuantize& fireImpactPoint);
 
 	void TraceUnderCrosshairs(FVector& fireImpactPoint);
 };
