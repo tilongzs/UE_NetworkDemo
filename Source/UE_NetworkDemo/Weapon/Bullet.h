@@ -27,6 +27,8 @@ protected:
 	UPROPERTY(EditAnywhere)
 		class UParticleSystem*			_destroyPartical;
 	class UParticleSystemComponent*		_particleSystemComponent = nullptr;
+	
+	float								_damage = 40;
 
 	UFUNCTION() 
 		void OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);

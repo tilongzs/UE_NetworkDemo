@@ -15,6 +15,7 @@
 #include <thread>
 #include <chrono>
 #include "Kismet/GameplayStatics.h"
+#include "../LobbyGameMode.h"
 using namespace std;
 using namespace chrono;
 
@@ -63,6 +64,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 	DOREPLIFETIME(ABlasterCharacter, _equippedWeapon);
 	DOREPLIFETIME(ABlasterCharacter, _isAiming);
+	DOREPLIFETIME(ABlasterCharacter, _currentHealth);
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -165,6 +167,22 @@ class USkeletalMeshComponent* ABlasterCharacter::GetWeaponMesh()
 	return nullptr;
 }
 
+void ABlasterCharacter::Server_OnDamage(float damage)
+{
+	_currentHealth -= damage;
+	
+	if (_currentHealth <= 0)
+	{
+		Drop();
+
+		ALobbyGameMode* gamemode = GetWorld()->GetAuthGameMode<ALobbyGameMode>();
+		if (gamemode)
+		{
+			gamemode->OnCharacterKilled(this);
+		}
+	}
+}
+
 void ABlasterCharacter::OnActionMoveForward(const FInputActionValue& inputActionValue)
 {
 	float inputValue = inputActionValue.Get<float>();
@@ -256,7 +274,7 @@ void ABlasterCharacter::OnActionAimingComplete(const FInputActionValue& inputAct
 
 void ABlasterCharacter::OnActionFireStart(const FInputActionValue& inputActionValue)
 {
-	if (!_fireTimer.IsValid())
+	if (_equippedWeapon && !_fireTimer.IsValid())
 	{
 		GetWorldTimerManager().SetTimer(_fireTimer, this, &ABlasterCharacter::OnTimerFire, _equippedWeapon->GetFireDelay(), true, 0);
 	}
@@ -443,11 +461,12 @@ void ABlasterCharacter::TraceUnderCrosshairs(FVector& fireImpactPoint)
 			bool ret = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(this, 0), crosshairScreenLocation, crosshairWorldLocation, crosshairWorldDirection);
 			if (ret)
 			{
-				float distanceToCharacter = (crosshairWorldLocation - GetActorLocation()).Size();
-				crosshairWorldLocation += (crosshairWorldDirection * distanceToCharacter + 50); // 射线的起始位置设置在角色前，而不是摄像机位置
+				float distanceToCharacter = (crosshairWorldLocation - GetActorLocation()).Size() + 50;
+				crosshairWorldLocation += (crosshairWorldDirection * distanceToCharacter); // 射线的起始位置设置在角色前，而不是摄像机位置
 				//DrawDebugSphere(GetWorld(), crosshairWorldLocation, 15.f, 12, FColor::Red, true);
 				FVector traceEnd = crosshairWorldLocation + crosshairWorldDirection * FIRE_TRACE_LENGTH;
 				FHitResult hitResult;
+				//DrawDebugLine(GetWorld(), crosshairWorldLocation, traceEnd, FColor::Yellow, false, 3);
 				ret = GetWorld()->LineTraceSingleByChannel(hitResult, crosshairWorldLocation, traceEnd, ECollisionChannel::ECC_Visibility);
 				if (ret)
 				{
@@ -455,7 +474,7 @@ void ABlasterCharacter::TraceUnderCrosshairs(FVector& fireImpactPoint)
 					if (hitResult.bBlockingHit)
 					{
 						fireImpactPoint = hitResult.ImpactPoint;
-					//	DrawDebugLine(GetWorld(), crosshairWorldLocation, hitResult.Location, FColor::Red);
+						//DrawDebugLine(GetWorld(), crosshairWorldLocation, hitResult.Location, FColor::Red, false, 3);
 					}
 					else
 					{

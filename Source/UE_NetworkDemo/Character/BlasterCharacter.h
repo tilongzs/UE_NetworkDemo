@@ -24,6 +24,12 @@ public:
 	inline bool IsWeaponEquipped() { return _equippedWeapon != nullptr; }
 	inline bool IsAiming() { return _isAiming; }
 	class USkeletalMeshComponent* GetWeaponMesh();
+	void Server_OnDamage(float damage);
+
+	UFUNCTION(BlueprintCallable)
+		inline float GetDefaultHealth() { return _defaultHealth; }
+	UFUNCTION(BlueprintCallable)
+		inline float GetCurrentHealth() { return _currentHealth; }
 protected:
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
@@ -43,6 +49,10 @@ protected:
 	float						_zoomInterpSpeed = 40.f;
 	FTimerHandle				_fireTimer;
 	FVector_NetQuantize			_fireImpactPoint;
+	UPROPERTY(VisibleAnywhere)
+	float						_defaultHealth = 100.f;
+	UPROPERTY(VisibleAnywhere, Replicated)
+	float						_currentHealth = _defaultHealth;
 
 	// 按键绑定
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="EnhancedInput")

@@ -2,6 +2,10 @@
 #include "Common/Utils.h"
 #include "GameFrameWork/GameStateBase.h"
 #include "GameFrameWork/PlayerState.h"
+#include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/PlayerStart.h"
+#include "Math/UnrealMathUtility.h"
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
@@ -48,4 +52,25 @@ void ALobbyGameMode::Logout(AController* Exiting)
             Log(FString::Printf(TEXT("%s 离开游戏!当前玩家数量:%d"), *playerName, playersNum - 1));
         }
     }
+}
+
+void ALobbyGameMode::OnCharacterKilled(ACharacter* character)
+{
+    APlayerController* playerController = Cast<APlayerController>(character->GetController());
+    if (playerController)
+    {
+        playerController->DisableInput(playerController);
+    }
+    character->Reset();    
+    character->Destroy();
+
+    // 重建角色
+   // GetWorldTimerManager().SetTimer(_timerRespawnCharacter, this, &ALobbyGameMode::OnTimerRespawnCharacter, 2);
+    FTimerHandle timerRespawnCharacter;
+    GetWorldTimerManager().SetTimer(timerRespawnCharacter, [&, playerController] {
+        TArray<AActor*> playerStarts;
+        UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), playerStarts);
+        int randomIndex = FMath::RandRange(0, playerStarts.Num() - 1);
+        RestartPlayerAtPlayerStart(playerController, playerStarts[randomIndex]);
+        }, 2, false);
 }

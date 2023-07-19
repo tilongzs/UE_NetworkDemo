@@ -16,4 +16,9 @@ class UE_NETWORKDEMO_API ALobbyGameMode : public AGameModeBase
 public:
 	virtual void PostLogin(APlayerController* NewPlayer);
 	virtual void Logout(AController* Exiting);
+
+	void OnCharacterKilled(class ACharacter* character);
+
+private:
+	FTimerHandle		_timerRespawnCharacter;
 };

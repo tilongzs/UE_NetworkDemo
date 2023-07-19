@@ -5,6 +5,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "../Character/BlasterCharacter.h"
 
 ABullet::ABullet()
 {
@@ -57,8 +58,15 @@ void ABullet::BeginPlay()
 
 }
 
+/// 仅服务端
 void ABullet::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	ABlasterCharacter* character = Cast<ABlasterCharacter>(OtherActor);
+	if (character)
+	{
+		character->Server_OnDamage(_damage);
+	}
+
 	Destroy();
 }
 
