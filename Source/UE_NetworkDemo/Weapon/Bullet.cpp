@@ -70,7 +70,7 @@ void ABullet::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherAct
 	ABlasterCharacter* character = Cast<ABlasterCharacter>(OtherActor);
 	if (character)
 	{
-		character->Server_OnDamage(_damage, GetInstigator());
+		UGameplayStatics::ApplyPointDamage(character, _damage, NormalImpulse, Hit, GetInstigator()->GetController(), this, _DamageType);
 	}
 
 	Destroy();

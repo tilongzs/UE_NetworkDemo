@@ -24,7 +24,6 @@ public:
 	inline bool IsWeaponEquipped() { return _equippedWeapon != nullptr; }
 	inline bool IsAiming() { return _isAiming; }
 	class USkeletalMeshComponent* GetWeaponMesh();
-	void Server_OnDamage(float damage, class APawn* instigator);
 
 	UFUNCTION(BlueprintCallable)
 		inline float GetDefaultHealth() { return _defaultHealth; }
@@ -127,4 +126,6 @@ protected:
 		void Multicast_Fire(const FVector_NetQuantize& fireImpactPoint);
 
 	void TraceUnderCrosshairs(FVector& fireImpactPoint);
+	UFUNCTION()
+		void OnDlgTakePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser);
 };

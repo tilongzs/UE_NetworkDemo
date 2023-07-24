@@ -26,6 +26,8 @@ protected:
 		class UParticleSystem*			_tracerPartical;
 	UPROPERTY(EditAnywhere)
 		class UParticleSystem*			_destroyPartical;
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+		TSubclassOf<UDamageType>		_DamageType;
 	class UParticleSystemComponent*		_particleSystemComponent = nullptr;
 	
 	float								_damage = 40;

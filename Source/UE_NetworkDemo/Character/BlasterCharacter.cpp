@@ -38,6 +38,7 @@ ABlasterCharacter::ABlasterCharacter()
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABlasterCharacter::OnCapsuleEndOverlap);
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
+	OnTakePointDamage.AddDynamic(this, &ABlasterCharacter::OnDlgTakePointDamage);
 }
 
 void ABlasterCharacter::BeginPlay()
@@ -168,22 +169,6 @@ class USkeletalMeshComponent* ABlasterCharacter::GetWeaponMesh()
 	}
 
 	return nullptr;
-}
-
-void ABlasterCharacter::Server_OnDamage(float damage, APawn* instigator)
-{
-	_currentHealth -= damage;
-	
-	if (_currentHealth <= 0)
-	{
-		Drop();
-
-		ALobbyGameMode* gamemode = GetWorld()->GetAuthGameMode<ALobbyGameMode>();
-		if (gamemode)
-		{
-			gamemode->OnCharacterKilled(this, instigator);
-		}
-	}
 }
 
 void ABlasterCharacter::OnActionMoveForward(const FInputActionValue& inputActionValue)
@@ -494,6 +479,22 @@ void ABlasterCharacter::TraceUnderCrosshairs(FVector& fireImpactPoint)
 			{
 				LogWarning(TEXT("DeprojectScreenToWorld失败"));
 			}
+		}
+	}
+}
+
+void ABlasterCharacter::OnDlgTakePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser)
+{
+	_currentHealth -= Damage;
+
+	if (_currentHealth <= 0)
+	{
+		Drop();
+
+		ALobbyGameMode* gamemode = GetWorld()->GetAuthGameMode<ALobbyGameMode>();
+		if (gamemode)
+		{
+			gamemode->OnCharacterKilled(this, InstigatedBy->GetPawn());
 		}
 	}
 }
