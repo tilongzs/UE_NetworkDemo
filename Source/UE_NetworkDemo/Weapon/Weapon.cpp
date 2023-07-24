@@ -7,6 +7,8 @@
 AWeapon::AWeapon()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	SetReplicates(true);
+	SetReplicateMovement(true);
 	
 	_mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
 	SetRootComponent(_mesh);
@@ -27,7 +29,6 @@ void AWeapon::BeginPlay()
 
 	if (HasAuthority())
 	{
- 		SetReplicates(true);
  		_mesh->SetIsReplicated(true);
 		_mesh->SetSimulatePhysics(true);		
 	}
