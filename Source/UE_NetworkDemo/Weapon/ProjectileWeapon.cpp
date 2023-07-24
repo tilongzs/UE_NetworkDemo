@@ -23,7 +23,7 @@ void AProjectileWeapon::Fire(const FVector& targetLocation)
 		{
 			FVector muzzleLocation = muzzleSocket->GetSocketLocation(_mesh); // 枪口位置
 			FActorSpawnParameters param;
-			param.Owner = GetOwner();
+			param.Owner = this;
 			param.Instigator = Cast<APawn>(GetOwner());
 			FRotator bulletRotator = UKismetMathLibrary::FindLookAtRotation(muzzleLocation, targetLocation);
 			ABullet* bullet = world->SpawnActor<ABullet>(_BulletClass, muzzleLocation, bulletRotator, param);

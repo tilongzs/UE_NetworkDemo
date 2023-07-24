@@ -27,6 +27,7 @@ ABullet::ABullet()
 
 	_projectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	_projectileMovementComponent->bRotationFollowsVelocity = true;
+	_projectileMovementComponent->SetIsReplicated(true);
 }
 
 void ABullet::Destroyed()
@@ -47,15 +48,20 @@ void ABullet::BeginPlay()
 	{
 		SetReplicates(true);
 		_sphereCollision->OnComponentHit.AddDynamic(this, &ABullet::OnComponentHit);
-		_projectileMovementComponent->SetIsReplicated(true);
 	}
 
 	if (_tracerPartical)
 	{
-		_particleSystemComponent = UGameplayStatics::SpawnEmitterAttached(_tracerPartical, RootComponent, FName(), GetActorLocation(), GetActorRotation(), EAttachLocation::KeepWorldPosition);
-		_particleSystemComponent->SetupAttachment(RootComponent);
+		_particleSystemComponent = UGameplayStatics::SpawnEmitterAttached(_tracerPartical, _mesh, FName(), GetActorLocation(), GetActorRotation(), EAttachLocation::KeepWorldPosition);
+		if (_particleSystemComponent)
+		{
+			_particleSystemComponent->SetupAttachment(_mesh);
+		}
+		else
+		{
+			LogError("SpawnEmitterAttached failed");
+		}
 	}
-
 }
 
 /// 仅服务端
@@ -64,7 +70,7 @@ void ABullet::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherAct
 	ABlasterCharacter* character = Cast<ABlasterCharacter>(OtherActor);
 	if (character)
 	{
-		character->Server_OnDamage(_damage);
+		character->Server_OnDamage(_damage, GetInstigator());
 	}
 
 	Destroy();

@@ -145,6 +145,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 void ABlasterCharacter::OnRep_PlayerState()
 {
+	//Log("ABlasterCharacter::OnRep_PlayerState");
 	// 用于客户端；会晚于BeginPlay
 	EventPlayerStateUpdate(GetPlayerState());
 }
@@ -152,6 +153,8 @@ void ABlasterCharacter::OnRep_PlayerState()
 void ABlasterCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+
+	//Log("ABlasterCharacter::PossessedBy");
 
 	// 用于服务端；会早于BeginPlay
 	EventPlayerStateUpdate(NewController->PlayerState);
@@ -167,7 +170,7 @@ class USkeletalMeshComponent* ABlasterCharacter::GetWeaponMesh()
 	return nullptr;
 }
 
-void ABlasterCharacter::Server_OnDamage(float damage)
+void ABlasterCharacter::Server_OnDamage(float damage, APawn* instigator)
 {
 	_currentHealth -= damage;
 	
@@ -178,7 +181,7 @@ void ABlasterCharacter::Server_OnDamage(float damage)
 		ALobbyGameMode* gamemode = GetWorld()->GetAuthGameMode<ALobbyGameMode>();
 		if (gamemode)
 		{
-			gamemode->OnCharacterKilled(this);
+			gamemode->OnCharacterKilled(this, instigator);
 		}
 	}
 }

@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 #include "Math/UnrealMathUtility.h"
+#include "MyPlayerState.h"
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
@@ -18,7 +19,7 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
         {
             FString playerName = playerState->GetPlayerName();
             int32 playersNum = GameState.Get()->PlayerArray.Num();
-            Log(FString::Printf(TEXT("%s 加入游戏!当前玩家数量:%d"), *playerName, playersNum));
+            Log(FString::Printf(TEXT("ALobbyGameMode %s 加入游戏!当前玩家数量:%d"), *playerName, playersNum));
 
             if (playersNum >= 4)
             {
@@ -49,28 +50,43 @@ void ALobbyGameMode::Logout(AController* Exiting)
         {
             FString playerName = playerState->GetPlayerName();
             int32 playersNum = GameState.Get()->PlayerArray.Num();
-            Log(FString::Printf(TEXT("%s 离开游戏!当前玩家数量:%d"), *playerName, playersNum - 1));
+            Log(FString::Printf(TEXT("ALobbyGameMode %s 离开游戏!当前玩家数量:%d"), *playerName, playersNum - 1));
         }
     }
 }
 
-void ALobbyGameMode::OnCharacterKilled(ACharacter* character)
+void ALobbyGameMode::OnCharacterKilled(class ACharacter* deathCharacter, class APawn* killer)
 {
-    APlayerController* playerController = Cast<APlayerController>(character->GetController());
-    if (playerController)
+    // 被击杀计数
+    AMyPlayerState* deathPlayerState = deathCharacter->GetPlayerState<AMyPlayerState>();
+    if (deathPlayerState)
     {
-        playerController->DisableInput(playerController);
+        deathPlayerState->Server_OnDeath();
     }
-    character->Reset();    
-    character->Destroy();
 
-    // 重建角色
-   // GetWorldTimerManager().SetTimer(_timerRespawnCharacter, this, &ALobbyGameMode::OnTimerRespawnCharacter, 2);
+    // 击杀计数
+    AMyPlayerState* killerPlayerState = killer->GetPlayerState<AMyPlayerState>();
+    if (killerPlayerState)
+    {
+        killerPlayerState->Server_OnKillSomebody();
+    }
+
+    // 销毁死亡角色
+    APlayerController* deathPlayerController = Cast<APlayerController>(deathCharacter->GetController());
+    if (deathPlayerController)
+    {
+        deathPlayerController->DisableInput(deathPlayerController);
+    }
+    deathCharacter->Reset();
+    deathCharacter->Destroy();
+
+    // 延迟重建死亡角色
     FTimerHandle timerRespawnCharacter;
-    GetWorldTimerManager().SetTimer(timerRespawnCharacter, [&, playerController] {
+    GetWorldTimerManager().SetTimer(timerRespawnCharacter, [&, deathPlayerController] 
+    {
         TArray<AActor*> playerStarts;
         UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), playerStarts);
         int randomIndex = FMath::RandRange(0, playerStarts.Num() - 1);
-        RestartPlayerAtPlayerStart(playerController, playerStarts[randomIndex]);
-        }, 2, false);
+        RestartPlayerAtPlayerStart(deathPlayerController, playerStarts[randomIndex]);
+    }, 2, false);
 }

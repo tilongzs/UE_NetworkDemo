@@ -17,7 +17,7 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer);
 	virtual void Logout(AController* Exiting);
 
-	void OnCharacterKilled(class ACharacter* character);
+	void OnCharacterKilled(class ACharacter* deathCharacter, class APawn* killer);
 
 private:
 	FTimerHandle		_timerRespawnCharacter;

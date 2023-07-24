@@ -24,7 +24,7 @@ public:
 	inline bool IsWeaponEquipped() { return _equippedWeapon != nullptr; }
 	inline bool IsAiming() { return _isAiming; }
 	class USkeletalMeshComponent* GetWeaponMesh();
-	void Server_OnDamage(float damage);
+	void Server_OnDamage(float damage, class APawn* instigator);
 
 	UFUNCTION(BlueprintCallable)
 		inline float GetDefaultHealth() { return _defaultHealth; }
