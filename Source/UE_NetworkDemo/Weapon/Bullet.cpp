@@ -68,12 +68,12 @@ void ABullet::BeginPlay()
 void ABullet::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	ABlasterCharacter* character = Cast<ABlasterCharacter>(OtherActor);
-	if (character)
+	if (character && OtherActor != GetInstigator())
 	{
 		UGameplayStatics::ApplyPointDamage(character, _damage, NormalImpulse, Hit, GetInstigator()->GetController(), this, _DamageType);
-	}
 
-	Destroy();
+		Destroy();
+	}
 }
 
 void ABullet::Tick(float DeltaTime)

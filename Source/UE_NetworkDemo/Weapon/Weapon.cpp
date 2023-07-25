@@ -14,7 +14,9 @@ AWeapon::AWeapon()
 	SetRootComponent(_mesh);
 	_mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	_mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	_mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	_mesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);	
+	_mesh->SetEnableGravity(true);
 
 	_sphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereColision"));
 	_sphereCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
@@ -64,6 +66,9 @@ void AWeapon::SetState(EWeaponState weaponState)
 	{
 		_sphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		_mesh->SetSimulatePhysics(false);
+
+		_mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		_mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	}
 	else
 	{
@@ -73,6 +78,11 @@ void AWeapon::SetState(EWeaponState weaponState)
 		{
 			_mesh->SetSimulatePhysics(true);
 		}
+
+		_mesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		_mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+		_mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+		_mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	}
 }
 

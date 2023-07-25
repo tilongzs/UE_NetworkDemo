@@ -306,8 +306,8 @@ void ABlasterCharacter::PickUp()
 				_equippedWeapon->SetOwner(this);
 				rightHandSocket->AttachActor(_equippedWeapon, GetMesh());
 
-				bUseControllerRotationYaw = true; // 身体跟随控制器（镜头）转向
-				GetCharacterMovement()->bOrientRotationToMovement = false; // 身体不跟随运动方向自动转向
+// 				bUseControllerRotationYaw = true; // 身体跟随控制器（镜头）转向
+// 				GetCharacterMovement()->bOrientRotationToMovement = false; // 身体不跟随运动方向自动转向
 
 				_dlgPickup.Broadcast(true);
 			}
