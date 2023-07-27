@@ -29,6 +29,8 @@ public:
 		inline float GetDefaultHealth() { return _defaultHealth; }
 	UFUNCTION(BlueprintCallable)
 		inline float GetCurrentHealth() { return _currentHealth; }
+	UFUNCTION(BlueprintCallable)
+		int32 GetAmmo();
 protected:
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
@@ -111,7 +113,7 @@ protected:
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDelegatePickUp, bool, isPickUp);
 	UPROPERTY(BlueprintAssignable)
-	FDelegatePickUp	_dlgPickup;
+		FDelegatePickUp	_dlgPickup;
 	/***************************************************************************************/
 	
 	void Aim(bool isAiming);
@@ -123,7 +125,7 @@ protected:
 	UFUNCTION(Server, Reliable)
 		void Server_Fire(bool isStop, const FVector_NetQuantize& fireImpactPoint);
 	UFUNCTION(NetMulticast, Reliable)
-		void Multicast_Fire(const FVector_NetQuantize& fireImpactPoint);
+		void Multicast_FireUpdate(const FVector_NetQuantize& fireImpactPoint, int32 ammo);
 
 	void TraceUnderCrosshairs(FVector& fireImpactPoint);
 	UFUNCTION()

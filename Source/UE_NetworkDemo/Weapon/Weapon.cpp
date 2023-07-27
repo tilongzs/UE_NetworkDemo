@@ -86,12 +86,36 @@ void AWeapon::SetState(EWeaponState weaponState)
 	}
 }
 
-void AWeapon::Fire(const FVector& targetLocation)
+bool AWeapon::Fire(const FVector& targetLocation, bool isUpdate, int32 ammo)
 {
 	if (_fireAnimation)
 	{
 		_mesh->PlayAnimation(_fireAnimation, false);
 	}
+
+	if (isUpdate)
+	{
+		if (_ammoUpdateSequence != 0)
+		{
+			_ammoUpdateSequence--;
+		}
+
+		if (0 == _ammoUpdateSequence)
+		{
+			_ammo = ammo;
+		}
+	}
+	else
+	{
+		if (!HasAuthority())
+		{
+			_ammoUpdateSequence++;
+		}
+
+		_ammo--;
+	}
+
+	return true;
 }
 
 void AWeapon::Tick(float DeltaTime)

@@ -40,14 +40,19 @@ protected:
 		float								_zoomInterpSpeed = 20.f;
 	UPROPERTY(EditAnywhere)
 		float								_fireDelay = 0.15f; // 射击间隔
+	UPROPERTY(VisibleAnywhere)
+		int32								_ammo = 0; // 剩余弹药
+	int32									_ammoUpdateSequence = 0; // 剩余弹药 同步序列
 
 	UFUNCTION()
 	void OnRep_WeaponState();
+
 public:	
 	void SetState(EWeaponState weaponState);
 	inline class USkeletalMeshComponent* GetMesh() { return _mesh; }
-	virtual void Fire(const FVector& targetLocation);
+	virtual bool Fire(const FVector& targetLocation, bool isUpdate, int32 ammo);
 	FORCEINLINE float GetZoomedFOV() { return _zoomedFOV; }
 	FORCEINLINE float GetZoomInterpSpeed() { return _zoomInterpSpeed; }
 	FORCEINLINE float GetFireDelay() { return _fireDelay; }
+	FORCEINLINE uint32 GetAmmo() { return _ammo; };
 };

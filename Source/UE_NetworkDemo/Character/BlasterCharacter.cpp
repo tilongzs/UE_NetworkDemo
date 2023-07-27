@@ -171,6 +171,11 @@ class USkeletalMeshComponent* ABlasterCharacter::GetWeaponMesh()
 	return nullptr;
 }
 
+int32 ABlasterCharacter::GetAmmo()
+{
+	return _equippedWeapon ? _equippedWeapon->GetAmmo() : 0;
+}
+
 void ABlasterCharacter::OnActionMoveForward(const FInputActionValue& inputActionValue)
 {
 	float inputValue = inputActionValue.Get<float>();
@@ -306,8 +311,8 @@ void ABlasterCharacter::PickUp()
 				_equippedWeapon->SetOwner(this);
 				rightHandSocket->AttachActor(_equippedWeapon, GetMesh());
 
-// 				bUseControllerRotationYaw = true; // 身体跟随控制器（镜头）转向
-// 				GetCharacterMovement()->bOrientRotationToMovement = false; // 身体不跟随运动方向自动转向
+				bUseControllerRotationYaw = true; // 身体跟随控制器（镜头）转向
+				GetCharacterMovement()->bOrientRotationToMovement = false; // 身体不跟随运动方向自动转向
 
 				_dlgPickup.Broadcast(true);
 			}
@@ -394,6 +399,48 @@ void ABlasterCharacter::UpdateZoom(float DeltaTime)
 	_followCamera->SetFieldOfView(_currentFOV);
 }
 
+void ABlasterCharacter::OnTimerFire()
+{
+	// 本地射击
+	if (IsLocallyControlled())
+	{
+		FVector	fireImpactPoint;
+		TraceUnderCrosshairs(fireImpactPoint);
+
+		if (_equippedWeapon && _equippedWeapon->GetAmmo() > 0)
+		{
+			/*
+				无论本地是客户端还是服务端，都先运行出本地结果，以保证操作流畅
+				客户端保存执行次数，然后使用服务端也执行同样次数之后的结果覆盖客户端的本地结果
+			*/
+			_equippedWeapon->Fire(fireImpactPoint, false, 0);
+
+			if (HasAuthority())
+			{
+				// 通知所有玩家射击结果
+				Multicast_FireUpdate(fireImpactPoint, _equippedWeapon->GetAmmo());
+			}
+			else
+			{
+				// 通知服务端射击
+				Server_Fire(false, fireImpactPoint);
+			}
+		}
+	}
+	else
+	{
+		// 服务端射击
+		if (_equippedWeapon && _equippedWeapon->GetAmmo() > 0)
+		{
+			// 服务端射击
+			_equippedWeapon->Fire(_fireImpactPoint, false, 0);
+
+			// 通知所有玩家射击结果
+			Multicast_FireUpdate(_fireImpactPoint, _equippedWeapon->GetAmmo());
+		}
+	}
+}
+
 void ABlasterCharacter::Server_Fire_Implementation(bool isStop, const FVector_NetQuantize& fireImpactPoint)
 {
 	if (isStop)
@@ -410,27 +457,15 @@ void ABlasterCharacter::Server_Fire_Implementation(bool isStop, const FVector_Ne
 	}
 }
 
-void ABlasterCharacter::OnTimerFire()
+void ABlasterCharacter::Multicast_FireUpdate_Implementation(const FVector_NetQuantize& fireImpactPoint, int32 ammo)
 {
-	if (IsLocallyControlled())
-	{
-		FVector	fireImpactPoint;
-		TraceUnderCrosshairs(fireImpactPoint);
-
-		Server_Fire(false, fireImpactPoint);
-	}
-
-	if (HasAuthority())
-	{
-		Multicast_Fire(_fireImpactPoint);
-	}
-}
-
-void ABlasterCharacter::Multicast_Fire_Implementation(const FVector_NetQuantize& fireImpactPoint)
-{
+	// 其他玩家执行射击
 	if (_equippedWeapon)
 	{
-		_equippedWeapon->Fire(fireImpactPoint);
+		if (!HasAuthority() && !IsLocallyControlled())
+		{
+			_equippedWeapon->Fire(fireImpactPoint, true, ammo);
+		}
 	}
 }
 

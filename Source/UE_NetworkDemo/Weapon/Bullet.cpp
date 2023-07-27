@@ -27,7 +27,6 @@ ABullet::ABullet()
 
 	_projectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	_projectileMovementComponent->bRotationFollowsVelocity = true;
-	_projectileMovementComponent->SetIsReplicated(true);
 }
 
 void ABullet::Destroyed()
@@ -46,7 +45,6 @@ void ABullet::BeginPlay()
 
 	if (HasAuthority())
 	{
-		SetReplicates(true);
 		_sphereCollision->OnComponentHit.AddDynamic(this, &ABullet::OnComponentHit);
 	}
 

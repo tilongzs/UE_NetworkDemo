@@ -18,5 +18,5 @@ protected:
 		TSubclassOf<class ABullet> _BulletClass;
 
 public:
-	virtual void Fire(const FVector& targetLocation) override;
+	virtual bool Fire(const FVector& targetLocation, bool isUpdate, int32 ammo) override;
 };
