@@ -276,7 +276,6 @@ void ABlasterCharacter::OnActionFireStart(const FInputActionValue& inputActionVa
 void ABlasterCharacter::OnActionFireComplete(const FInputActionValue& inputActionValue)
 {
 	GetWorldTimerManager().ClearTimer(_fireTimer);
-
 	FVector_NetQuantize fireImpactPoint;
 	Server_Fire(true, fireImpactPoint);
 }
