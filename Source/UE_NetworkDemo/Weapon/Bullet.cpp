@@ -117,12 +117,9 @@ void ABullet::Server_RewindHit_Implementation(FVector hitLocation, double timeSe
 			UGameplayStatics::ApplyPointDamage(character, _damage, FVector(), FHitResult(), GetInstigator()->GetController(), this, _DamageType);
 
 			_sphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			Destroy();
 		}
-		else
-		{
-			Log("Server_RewindHit false");
-		}
+
+		Destroy();
 	}
 }
 
