@@ -23,6 +23,9 @@ public:
 
 	inline bool IsWeaponEquipped() { return _equippedWeapon != nullptr; }
 	inline bool IsAiming() { return _isAiming; }
+	inline bool IsUseServerRewind() { return _useServerRewind; }
+	inline class UDamageComponent* GetDamageComp() { return _damageComp; }
+	inline double GetDifferFromServerTime() { return _differFromServerTime; }
 	class USkeletalMeshComponent* GetWeaponMesh();
 
 	UFUNCTION(BlueprintCallable)
@@ -34,11 +37,15 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+	virtual void PostInitializeComponents() override;
 
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 		class USpringArmComponent* _cameraBoom = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 		class UCameraComponent* _followCamera = nullptr;
+	UPROPERTY(EditAnywhere)
+		class UDamageComponent* _damageComp = nullptr;
+
 	UPROPERTY(VisibleAnywhere)
 		TSet<AActor*>			_overlapActors;
 	UPROPERTY(VisibleAnywhere, Replicated)
@@ -51,9 +58,12 @@ protected:
 	FTimerHandle				_fireTimer;
 	FVector_NetQuantize			_fireImpactPoint;
 	UPROPERTY(VisibleAnywhere)
-	float						_defaultHealth = 100.f;
+		float						_defaultHealth = 100.f;
 	UPROPERTY(VisibleAnywhere, Replicated)
-	float						_currentHealth = _defaultHealth;
+		float						_currentHealth = _defaultHealth;
+	UPROPERTY(EditAnywhere)
+		bool					_useServerRewind = true;
+	double						_differFromServerTime = 0;
 
 	// 按键绑定
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="EnhancedInput")
@@ -116,6 +126,11 @@ protected:
 		FDelegatePickUp	_dlgPickup;
 	/***************************************************************************************/
 	
+	UFUNCTION(Server, Reliable)
+		void RequestServerTimeSeconds();
+	UFUNCTION(Client, Reliable)
+		void ResponseServerTimeSeconds(double serverTimeSeconds);
+
 	void Aim(bool isAiming);
 	UFUNCTION(Server, Reliable)
 		void Server_Aim(bool isAiming);

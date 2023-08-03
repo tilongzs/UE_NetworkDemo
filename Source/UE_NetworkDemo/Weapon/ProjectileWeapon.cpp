@@ -19,6 +19,11 @@ bool AProjectileWeapon::Fire(const FVector& targetLocation, bool isUpdate, int32
 		return false;
 	}
 
+	if (!HasAuthority())
+	{
+		return false;
+	}
+
 	// 生成子弹
 	const USkeletalMeshSocket* muzzleSocket = _mesh->GetSocketByName(FName("MuzzleFlash"));
 	UWorld* world = GetWorld();

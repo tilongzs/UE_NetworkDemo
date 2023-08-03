@@ -4,6 +4,8 @@
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/Controller.h"
 #include "Camera/CameraComponent.h"
+#include "../LobbyGameMode.h"
+#include "../DamageComponent.h"
 #include "../Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputSubsystems.h"
 #include "../Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputComponent.h"
 #include "../Common/Utils.h"
@@ -11,11 +13,12 @@
 #include "../Weapon/Weapon.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Net/UnrealNetwork.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/BoxComponent.h"
 
 #include <thread>
 #include <chrono>
-#include "Kismet/GameplayStatics.h"
-#include "../LobbyGameMode.h"
+
 using namespace std;
 using namespace chrono;
 
@@ -39,6 +42,8 @@ ABlasterCharacter::ABlasterCharacter()
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
 	OnTakePointDamage.AddDynamic(this, &ABlasterCharacter::OnDlgTakePointDamage);
+	_damageComp = CreateDefaultSubobject<UDamageComponent>(TEXT("DamageComp"));
+	_damageComp->SetCharacter(this);
 }
 
 void ABlasterCharacter::BeginPlay()
@@ -47,7 +52,7 @@ void ABlasterCharacter::BeginPlay()
 
 	_defaultFOV = _followCamera->FieldOfView;
 	_currentFOV = _defaultFOV;
-
+	
 	/*
 		在网络游戏中，PlayerState的初始化和复制需要一些时间。因此，在BeginPlay函数中调用GetPlayerState可能会在PlayerState初始化之前。
 		可以通过重写OnRep_PlayerState函数来得知PlayerState的初始化和复制完成。
@@ -56,6 +61,12 @@ void ABlasterCharacter::BeginPlay()
 	if (playerState)
 	{
 		//Log(FString::Printf(TEXT("玩家名 %s"), *playerState->GetPlayerName()));
+	}
+
+	// 同步服务端时间
+	if (IsLocallyControlled() && !HasAuthority())
+	{
+		RequestServerTimeSeconds();
 	}
 }
 
@@ -66,6 +77,12 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ABlasterCharacter, _equippedWeapon);
 	DOREPLIFETIME(ABlasterCharacter, _isAiming);
 	DOREPLIFETIME(ABlasterCharacter, _currentHealth);
+}
+
+void ABlasterCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
 }
 
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -363,6 +380,17 @@ void ABlasterCharacter::Drop()
 void ABlasterCharacter::Server_Drop_Implementation()
 {
 	Drop();
+}
+
+void ABlasterCharacter::RequestServerTimeSeconds_Implementation()
+{
+	ResponseServerTimeSeconds(GetWorld()->GetTimeSeconds());
+}
+
+void ABlasterCharacter::ResponseServerTimeSeconds_Implementation(double serverTimeSeconds)
+{
+	_differFromServerTime = serverTimeSeconds - GetPlayerState()->GetPingInMilliseconds() / 2 / 1000 - GetWorld()->GetTimeSeconds();
+	//Log(FString::Printf(TEXT("serverTimeSeconds:%f timeSeconds:%f _differFromServerTime:%f"), serverTimeSeconds, GetWorld()->GetTimeSeconds(), _differFromServerTime));
 }
 
 void ABlasterCharacter::Aim(bool isAiming)
