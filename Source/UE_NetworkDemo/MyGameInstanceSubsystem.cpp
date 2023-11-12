@@ -6,6 +6,16 @@
 #include "../Plugins/Online/OnlineSubsystem/Source/Public/OnlineSessionSettings.h"
 #include "Common/Utils.h"
 
+void UMyGameInstanceSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	if (GEngine)
+	{
+		Log("UMyGameInstanceSubsystem::Initialize");
+		GEngine->TravelFailureEvent.AddUObject(this, &UMyGameInstanceSubsystem::OnTravelFailure);
+		GEngine->NetworkFailureEvent.AddUObject(this, &UMyGameInstanceSubsystem::OnNetworkFailure);
+	}
+}
+
 void UMyGameInstanceSubsystem::ServerTravelLobby()
 {
 	UWorld* world = GetWorld();
@@ -30,11 +40,14 @@ void UMyGameInstanceSubsystem::CallClientTravel(const FString& address)
 	APlayerController* playerController = GetGameInstance()->GetFirstLocalPlayerController();
 	if (playerController)
 	{
+		Log(FString::Printf(TEXT("CallClientTravel address:%s"), *address));
+		GEngine->TravelFailureEvent.AddUObject(this, &UMyGameInstanceSubsystem::OnTravelFailure);
+		GEngine->NetworkFailureEvent.AddUObject(this, &UMyGameInstanceSubsystem::OnNetworkFailure);
 		playerController->ClientTravel(address, ETravelType::TRAVEL_Absolute);
 	}
 	else
 	{
-		Log("CallClientTravel failed");
+		Log("CallClientTravel playerController nullptr");
 	}
 }
 
@@ -88,7 +101,7 @@ void UMyGameInstanceSubsystem::CreateGameSession()
 	sessionSetting->bShouldAdvertise = true;
 	sessionSetting->bUsesPresence = true;
 	sessionSetting->bUseLobbiesIfAvailable = true;
-	sessionSetting->BuildUniqueId = 1; // 生成唯一会话ID，以保证其他用户能搜索到
+	sessionSetting->BuildUniqueId = rand(); // 生成唯一会话ID，以保证其他用户能搜索到
 	sessionSetting->Set(FName("MatchType"), FString("FreeForAll"), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing); // 自定义参数
 	const ULocalPlayer* localPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 	if (!_onlineSession->CreateSession(*localPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *sessionSetting))
@@ -192,7 +205,7 @@ void UMyGameInstanceSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
 		for (auto& result : _onlineSessionSearch->SearchResults)
 		{
 			FString sessionID = result.GetSessionIdStr();
-			Log(FString::Printf(TEXT("查找到游戏会话 sessionID:%s userName:%s"), *sessionID, *result.Session.OwningUserName));
+			Log(FString::Printf(TEXT("查找到游戏会话 sessionID:%s 创建者userName:%s"), *sessionID, *result.Session.OwningUserName));
 
 			// 可检查MatchType是否一致
 			FString matchType;
@@ -240,7 +253,8 @@ void UMyGameInstanceSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinS
 		FString connectInfo;
 		if (_onlineSession->GetResolvedConnectString(NAME_GameSession, connectInfo))
 		{
-			Log(FString::Printf(TEXT("游戏会话连接信息: %s"), *connectInfo));
+			// connectInfo是包含服务端IP与端口的字符串，例如：192.168.1.10:7777
+			Log(FString::Printf(TEXT("游戏会话连接信息: %s"), *connectInfo));			
 
 			// 连接服务端
 			APlayerController* playerController = GetGameInstance()->GetFirstLocalPlayerController();
@@ -299,4 +313,14 @@ void UMyGameInstanceSubsystem::OnDestroySessionComplete(FName SessionName, bool 
 	_onlineSession->ClearOnDestroySessionCompleteDelegate_Handle(_dhOnDestroySessionComplete);
 
 	Log(FString::Printf(TEXT("会话已销毁 %d"), bWasSuccessful));
+}
+
+void UMyGameInstanceSubsystem::OnTravelFailure(UWorld* World, ETravelFailure::Type Type, const FString& ErrorString)
+{
+	Log(FString::Printf(TEXT("OnTravelFailure World:%s Type:%d ErrorString:%s"), *World->GetName(), Type, *ErrorString));
+}
+
+void UMyGameInstanceSubsystem::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type Type, const FString& ErrorString)
+{
+	Log(FString::Printf(TEXT("OnNetworkFailure World:%s Type:%d ErrorString:%s"), *World->GetName(), Type, *ErrorString));
 }

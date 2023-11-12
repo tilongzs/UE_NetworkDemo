@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/Engine.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "../Plugins/Online/OnlineSubsystem/Source/Public/Interfaces/OnlineSessionInterface.h"
 #include "../Plugins/Online/OnlineSubsystem/Source/Public/OnlineSessionSettings.h"
@@ -17,6 +18,8 @@ class UE_NETWORKDEMO_API UMyGameInstanceSubsystem : public UGameInstanceSubsyste
 {
 	GENERATED_BODY()
 public:
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+
 	UFUNCTION(BlueprintCallable)
 	void ServerTravelLobby();
 
@@ -62,4 +65,7 @@ protected:
 	void OnSessionParticipantJoined(FName SessionName, const FUniqueNetId& UniqueId);
 	void OnSessionParticipantLeft(FName SessionName, const FUniqueNetId& UniqueId, EOnSessionParticipantLeftReason LeaveReason);
 	void OnDestroySessionComplete(FName SessionName, bool bWasSuccessful);
+
+	void OnTravelFailure(UWorld* World, ETravelFailure::Type Type, const FString& ErrorString);
+	void OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type Type, const FString& ErrorString);
 };

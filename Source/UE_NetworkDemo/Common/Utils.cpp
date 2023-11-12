@@ -10,6 +10,8 @@ void Log(const FString& log, float time, FColor color)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, time, color, GetCurrentTimeStr(true) +  TEXT(" ") + log);
 	}	
+
+	UE_LOG(LogTemp, Display, TEXT("%s"), *log);
 }
 
 void LogWarning(const FString& log, float time /*= 10.f*/)
@@ -18,6 +20,8 @@ void LogWarning(const FString& log, float time /*= 10.f*/)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, time, FColor::Yellow, GetCurrentTimeStr(true) + TEXT(" ") + log);
 	}
+
+	UE_LOG(LogTemp, Display, TEXT("%s"), *log);
 }
 
 void LogError(const FString& log, float time /*= 15.f*/)
@@ -26,6 +30,8 @@ void LogError(const FString& log, float time /*= 15.f*/)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, time, FColor::Red, GetCurrentTimeStr(true) + TEXT(" ") + log);
 	}
+
+	UE_LOG(LogTemp, Display, TEXT("%s"), *log);
 }
 
 FString GetCurrentTimeStr(bool hasMillisecond)
